@@ -9,23 +9,24 @@
 
 #import "Slider.h"
 
-#define kCacheViewHeight 45
+#define kCacheViewHeight 20
 
 
 @interface Slider ()
 
-@property (nonatomic, strong) UIView *cacheSliderView;
+@property (nonatomic, strong) UIImageView *cacheSliderView;
 @property (nonatomic, strong) UIView *backSliderView;
-@property (nonatomic, strong) UIView *recoderSliderView;
+@property (nonatomic, strong) UIImageView *recoderSliderView;
 @property (nonatomic, strong) UIView *touchView;
 
 @end
 
 
-@implementation Slider
+@implementation Slider {
+    BOOL _isOut;
+}
 
 - (void)dealloc {
-    // 代理滞空
     _delegate = nil;
     NSLog(@"%s", __func__);
 }
@@ -42,26 +43,26 @@
         [self addSubview:self.backSliderView];
         
         // 缓冲条
-        self.cacheSliderView = [[UIView alloc]init];
-        self.cacheSliderView.backgroundColor = [UIColor blueColor];
-        self.cacheSliderView.alpha = 0.1;
+        self.cacheSliderView = [[UIImageView alloc]init];
+//        self.cacheSliderView.backgroundColor = [UIColor blueColor];
+//        self.cacheSliderView.alpha = 0.1;
+        self.cacheSliderView.image = [UIImage imageNamed:@"poster_shadow"];
         self.cacheSliderView.userInteractionEnabled = NO;
         [self addSubview:self.cacheSliderView];
         
         // 播放条
-        self.recoderSliderView = [[UIView alloc]init];
-        self.recoderSliderView.backgroundColor = [UIColor blueColor];
+        self.recoderSliderView = [[UIImageView alloc]init];
+//        self.recoderSliderView.backgroundColor = [UIColor blueColor];
+        //leso_poster_mask   poster_shadow
+        self.recoderSliderView.image = [UIImage imageNamed:@"leso_poster_mask"];
         self.recoderSliderView.userInteractionEnabled = NO;
         [self addSubview:self.recoderSliderView];
         
         
         // 创建滑块视图
-        self.thumbView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 20, 20)];
-        self.thumbView.backgroundColor = [UIColor whiteColor];
-        self.thumbView.center = CGPointZero;
-        // 把用户交互关闭，防止响应者链断开，造成slider不可滑动
+        self.thumbView = [[UIImageView alloc]init];
+        self.thumbView.image = [UIImage imageNamed:@"btn_progressBar_slidingBlock"];
         self.thumbView.userInteractionEnabled = NO;
-        self.thumbView.layer.cornerRadius = 10;
         [self addSubview:_thumbView];
         
         self.touchView = [[UIView alloc] initWithFrame:self.bounds];
@@ -85,7 +86,9 @@
     
     if (!CGRectEqualToRect(self.touchView.frame, self.bounds)) {
         self.touchView.frame = self.bounds;
+        self.thumbView.frame = CGRectMake(0, 0, 4, kCacheViewHeight);
         self.thumbView.center = CGPointMake(self.thumbView.center.x, self.frame.size.height / 2);
+        
         self.backSliderView.frame = CGRectMake(0, (self.frame.size.height - kCacheViewHeight) / 2, self.frame.size.width, kCacheViewHeight);
 
         self.recoderSliderView.frame = CGRectMake(0, (self.frame.size.height - kCacheViewHeight) / 2, self.thumbView.center.x, kCacheViewHeight);
@@ -94,6 +97,8 @@
             self.cacheSliderView.frame = CGRectMake(0, (self.frame.size.height - kCacheViewHeight) / 2, _cacheProgress / (_maximumValue - _minimumValue) * self.frame.size.width, kCacheViewHeight);
 
         }
+        
+        
 
     }
  
@@ -166,27 +171,35 @@
     
     if (!CGRectContainsPoint(self.bounds, touchPoint)) {
         
+        if (_isOut) {
+            return;
+        }
+        
         if (self.thumbView.center.x != 0) {
             [self delegateTouch:touchPoint.x];
         }
+        
+        _isOut = YES;
+//        NSLog(@"被return");
         return;
     }
     
+    _isOut = NO;
+
     switch (pan.state) {
         case UIGestureRecognizerStateBegan:{ // 开始移动
-            NSLog(@"开始移动");
+//            NSLog(@"开始移动");
             [self delegateTouch:touchPoint.x];
             break;
         }
         case UIGestureRecognizerStateChanged:{ // 正在移动
             CGFloat progress = touchPoint.x/self.frame.size.width * (_maximumValue - _minimumValue);
-            NSLog(@"正在移动");
+//            NSLog(@"正在移动");
             
             _highlighted = YES;
 
             // 此时只需改变UI
             [self changeThumbViewCenter:touchPoint.x];
-
 
             if ([self.delegate respondsToSelector:@selector(progressAction:)]) {
                 [self.delegate progressAction:progress];
@@ -195,7 +208,7 @@
             break;
         }
         case UIGestureRecognizerStateEnded:{ // 移动停止
-            NSLog(@"停止移动");
+//            NSLog(@"停止移动");
             [self delegateTouch:touchPoint.x];
 
         }

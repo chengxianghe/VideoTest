@@ -22,22 +22,13 @@ NSInteger const MoviePlayerArchiveKey_MaxCount = 50;
 
 @implementation MovieManager
 
-+ (MovieManager *)sharedInstance {
-    static MovieManager *sharedInstance = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        sharedInstance = [[self alloc] init];
-    });
-    return sharedInstance;
-}
-
 + (NSString *)pathOfArchiveFile{
     NSArray *filePath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentPath = [filePath lastObject];
     NSString *plistFilePath = [documentPath stringByAppendingPathComponent:@"playRecord.plist"];
     return plistFilePath;
 }
-- (void)addPlayRecordWithIdentifier:(NSString *)identifier progress:(CGFloat)progress{
++ (void)addPlayRecordWithIdentifier:(NSString *)identifier progress:(CGFloat)progress{
     
     NSMutableArray *recardList = [[NSMutableArray alloc]initWithContentsOfFile:[MovieManager pathOfArchiveFile]];
     if (!recardList) {
@@ -52,7 +43,7 @@ NSInteger const MoviePlayerArchiveKey_MaxCount = 50;
     [recardList writeToFile:[MovieManager pathOfArchiveFile] atomically:YES];
 }
 
-- (CGFloat)getProgressByIdentifier:(NSString *)identifier{
++ (CGFloat)getProgressByIdentifier:(NSString *)identifier{
     NSMutableArray *recardList = [[NSMutableArray alloc]initWithContentsOfFile:[MovieManager pathOfArchiveFile]];
     __block CGFloat progress = 0;
     [recardList enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
@@ -62,7 +53,7 @@ NSInteger const MoviePlayerArchiveKey_MaxCount = 50;
             *stop = YES;
         }
     }];
-    if (progress > 0.9 || progress < 0.05) {
+    if (progress > 0.99 || progress < 0.01) {
         return 0;
     }
     return progress;

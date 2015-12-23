@@ -10,6 +10,7 @@
 #import <MediaPlayer/MediaPlayer.h>
 #import "MyActivityIndicatorView.h"
 #import "Slider.h"
+#import "MovieManager.h"
 
 
 #define kNeedHudTip [@YES boolValue]
@@ -33,12 +34,14 @@
 @property (nonatomic, strong) MyActivityIndicatorView *activity; // 添加菊花动画
 @property (nonatomic, strong) UILabel *thumbTimeLabel; // 添加到滑块上的时间显示label
 @property (nonatomic, strong) UISlider *volumeSlider; // 用来接收系统音量条
-//@property (nonatomic, strong) UILabel *horizontalLabel; // 水平滑动时显示进度
 @property (nonatomic, assign) UIDeviceOrientation   movieOrientation; // 旋转方向
 @property (nonatomic, strong) UIView *topBackView; //
 @property (nonatomic, strong) UILabel *titleLabel; //
 @property (nonatomic, strong) BrightnessHUD *brigntnessHud;     //
 @property (nonatomic, strong) VideoProgressHUD *videoProgressHud;     // <#注释#>
+@property (nonatomic, copy) NSAttributedString *totalTimeStr;
+@property (nonatomic, strong) NSURL *url;     // <#注释#>
+
 @end
 
 
@@ -62,6 +65,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         
+        self.url = url;
+        
         self.movieOrientation = [UIDevice currentDevice].orientation;
 
         self.moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:url];
@@ -69,7 +74,7 @@
         self.moviePlayer.controlStyle = MPMovieControlStyleNone;
         // 视屏开始播放的时候，这个view开始响应用户的操作，把它关闭
         self.moviePlayer.view.userInteractionEnabled = NO;
-        [self.moviePlayer play];
+        
         [self addSubview:self.moviePlayer.view];
         
         [self configUI];
@@ -128,19 +133,18 @@
     
     self.rorateBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.rorateBtn setImage:[UIImage imageNamed:@"btn_miniscreen"] forState:UIControlStateNormal];
-//    [self.rorateBtn setHighImage:[UIImage imageNamed:@"btn_miniscreen_active"] selectedHighImage:[UIImage imageNamed:@"btn_fullscreen_active"]];
     [self.rorateBtn setImage:[UIImage imageNamed:@"btn_fullscreen"] forState:UIControlStateSelected];
     [self.rorateBtn setSelected:YES];
     self.rorateBtn.titleLabel.font=[UIFont systemFontOfSize:16];
     [self.rorateBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-//    self.rorateBtn.showsTouchWhenHighlighted = YES;
-//    self.rorateBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
-    [self.rorateBtn addTarget:self action:@selector(infoDidTouch:) forControlEvents:UIControlEventTouchUpInside];
+    self.rorateBtn.showsTouchWhenHighlighted = YES;
+    self.rorateBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    [self.rorateBtn addTarget:self action:@selector(rotateBtnDidTouch) forControlEvents:UIControlEventTouchUpInside];
     [self.topBackView addSubview:self.rorateBtn];
     
     self.backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.backBtn setImage:[UIImage imageNamed:@"top_back_normal"] forState:UIControlStateNormal];
-    [self.backBtn setImage:[UIImage imageNamed:@"top_back_active"] forState:UIControlStateNormal];
+    [self.backBtn setImage:[UIImage imageNamed:@"top_back_active"] forState:UIControlStateSelected];
 
     self.backBtn.titleLabel.font=[UIFont systemFontOfSize:16];
     [self.backBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -220,40 +224,39 @@
     minImageView.tag = 101;
     [self.volume addSubview:minImageView];
     
-//    // 水平滑动显示的进度label
-//    self.horizontalLabel = [[UILabel alloc]init];
-//    self.horizontalLabel.textColor = [UIColor whiteColor];
-//    self.horizontalLabel.textAlignment = NSTextAlignmentCenter;
-//    self.horizontalLabel.text = @"00:00 / --:--";
-//    // 一上来先隐藏
-//    self.horizontalLabel.hidden = YES;
-//    [self addSubview:_horizontalLabel];
-
 }
 
 - (void)configNotification {
     // add event handler, for this example, it is `volumeChange:` method
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(volumeDidChange:) name:@"AVSystemController_SystemVolumeDidChangeNotification"
-                                               object:nil];
+    
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    
+    // 系统音量
+    [center addObserver:self selector:@selector(volumeDidChange:) name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
+
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
 
+    // 系统亮度
+    [center addObserver:self selector:@selector(brightnessDidChange:) name:UIScreenBrightnessDidChangeNotification object:nil];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(brightnessDidChange:)
-                                                 name:UIScreenBrightnessDidChangeNotification
-                                               object:nil];
-    
-
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientation:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    // 旋转方向
+    [center addObserver:self selector:@selector(deviceOrientation:) name:UIDeviceOrientationDidChangeNotification object:nil];
     
     // 接收视频时长可用的通知
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(durationAvailable) name:MPMovieDurationAvailableNotification object:nil];
-    // 播放结束的通知
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(playFinished) name:MPMoviePlayerPlaybackDidFinishNotification object:nil];
-
+    [center addObserver:self selector:@selector(durationAvailable) name:MPMovieDurationAvailableNotification object:nil];
     
+    // 接收网络视频加载完成的通知
+    [center addObserver:self selector:@selector(playPreparedToPlay:) name:MPMediaPlaybackIsPreparedToPlayDidChangeNotification object:nil];
+    
+    // 播放结束的通知
+    [center addObserver:self selector:@selector(playFinished) name:MPMoviePlayerPlaybackDidFinishNotification object:nil];
+    
+    // 进入前台
+    [center addObserver:self selector:@selector(playWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+    // 进入后台
+    [center addObserver:self selector:@selector(playDidEnterEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+
+
 }
 
 - (void)layoutSubviews {
@@ -275,7 +278,7 @@
     self.rorateBtn.frame = CGRectMake(self.topBackView.frame.size.width-40, 15, 30, 30);
     self.backBtn.frame = CGRectMake(0, 10, 40, 40);
     
-    self.thumbTimeLabel.frame = CGRectMake(-35, -40, 80, 25);
+    self.thumbTimeLabel.frame = CGRectMake(-35, -30, 80, 25);
     self.volume.frame = CGRectMake(0, 0, 30, self.frame.size.height / 2.8);
     self.volume.center = CGPointMake(40, self.frame.size.height / 2);
     
@@ -288,8 +291,6 @@
     
     maxImageView.frame = CGRectMake(self.volume.frame.size.height, 0, volumWidth, volumWidth);
     minImageView.frame = CGRectMake(-volumWidth, 0, volumWidth, volumWidth);
-    
-//    self.horizontalLabel.frame = CGRectMake(0, self.frame.size.height / 1.3, self.frame.size.width, 40);
     
     self.brigntnessHud.frame = CGRectMake(0, 0, 160, 170);
     self.brigntnessHud.center = CGPointMake(ScreenWidth/2, ScreenHeight/2);
@@ -307,6 +308,9 @@
 
 - (void)stopPlay {
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    
+    // 记录
+    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:self.moviePlayer.currentPlaybackTime/self.moviePlayer.duration];
     
     // 关闭定时器
     [self.timer invalidate];
@@ -455,14 +459,6 @@
 #pragma mark - pan水平移动的方法
 - (void)horizontalMoved:(CGFloat)value {
     // 快进快退的方法
-    NSString *style = @"";
-    if (value < 0) {
-        style = @"<<";
-    }
-    else if (value > 0){
-        style = @">>";
-    }
-    
     // 每次滑动需要叠加时间
     sumTime += value / 200;
     
@@ -475,17 +471,11 @@
     
     // 当前快进的时间
     NSString *nowTime = [self durationStringWithTime:(int)sumTime];
-    // 总时间
-    NSString *durationTime = [self durationStringWithTime:(int)self.moviePlayer.duration];
-    // 给label赋值
-//    self.horizontalLabel.text = [NSString stringWithFormat:@"%@ %@ / %@",style, nowTime, durationTime];
-    self.videoProgressHud.hidden = NO;
-    [self.videoProgressHud showWithVideoProgress:sumTime/self.moviePlayer.duration text:[NSString stringWithFormat:@"%@ / %@", nowTime, durationTime] isForward:[style isEqualToString:@">>"]];
+    self.beginLabel.text = nowTime;
     
-    //    CGRect tFrame = self.progress.thumbView.frame;
-    //    tFrame.origin.x = self.moviePlayer.currentPlaybackTime/self.moviePlayer.duration * tFrame.size.width;
-    //    self.progress.thumbView.frame = tFrame;
-    ////    self.progress.cache = self.moviePlayer.playableDuration;
+    NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:nowTime attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+    [str appendAttributedString:self.totalTimeStr];
+    [self.videoProgressHud showWithVideoProgress:sumTime/self.moviePlayer.duration text:str isForward:value > 0];
     
 }
 
@@ -505,33 +495,36 @@
 }
 
 #pragma mark  设备旋转
-- (void)infoDidTouch:(UIButton *)sender {
-    //    NSLog(@"%ld",[UIDevice currentDevice].orientation);
+- (void)rotateBtnDidTouch {
+
     [self pausePlay];
+    
     if (_movieOrientation == UIDeviceOrientationPortrait) {
-        //        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationLandscapeRight];
-        //        self.transform = CGAffineTransformMakeRotation(M_PI/2);
-        //        self.bounds = CGRectMake(0, 0, ScreenHeight, ScreenWidth);
-        
-        NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
-        [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
-        
-        _movieOrientation = UIDeviceOrientationLandscapeRight;
-        self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
-        sender.selected = NO;
-
+        [self playToLandscapeRight];
+        self.rorateBtn.selected = NO;
     } else {
-        NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
-        [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
-        //        self.transform = CGAffineTransformMakeRotation(M_PI*2);
-        //        self.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
-        self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
-        _movieOrientation = UIDeviceOrientationPortrait;
-        sender.selected = YES;
-
+        [self playToPortrait];
+        self.rorateBtn.selected = YES;
     }
+}
+
+- (void)playToLandscapeRight {
+    //        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationLandscapeRight];
+    //        self.transform = CGAffineTransformMakeRotation(M_PI/2);
+    //        self.bounds = CGRectMake(0, 0, ScreenHeight, ScreenWidth);
     
+    NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
+    [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
     
+    self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
+}
+
+- (void)playToPortrait {
+    NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
+    [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
+    //        self.transform = CGAffineTransformMakeRotation(M_PI*2);
+    //        self.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
+    self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
 }
 
 #pragma mark - 通知
@@ -546,15 +539,13 @@
     // 给视频总时长赋值
     self.beginLabel.text = [self durationStringWithTime:(int)0];
     self.endLabel.text = [self durationStringWithTime:(int)self.moviePlayer.duration];
+    
+    // videoHud
+    self.totalTimeStr = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" / %@", self.endLabel.text] attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+
     // 修改progress的最大值和最小值
     self.progress.maximumValue = self.moviePlayer.duration;
     self.progress.minimumValue = 0;
-    
-    
-    // 加载完后添加timer
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(playbackStates:) userInfo:nil repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
-    
     
     // 添加平移手势，用来控制音量和快进快退
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panDirection:)];
@@ -564,6 +555,27 @@
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction)];
     [self addGestureRecognizer:tap];
     
+    [self.moviePlayer prepareToPlay];
+    
+
+    
+}
+
+//    [self.activity startAnimating];
+
+- (void)playPreparedToPlay:(NSNotification *)notification {
+    
+
+    if (self.timer == nil && self.moviePlayer.isPreparedToPlay) {
+        // 加载完后添加timer
+        self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(playbackStates:) userInfo:nil repeats:YES];
+        [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
+        // 记录
+        self.moviePlayer.currentPlaybackTime = self.moviePlayer.duration * [MovieManager getProgressByIdentifier:[self.url absoluteString]];
+
+    }
+    
+  
 }
 
 // 播放结束
@@ -572,6 +584,27 @@
     self.moviePlayer.currentPlaybackTime = 0;
     [self tapAction];
     [self pausePlay];
+}
+
+//进入前台 再次进入前台要 转竖屏
+- (void)playWillEnterForeground {
+    
+    [self pausePlay];
+    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+
+    if (_movieOrientation != UIDeviceOrientationPortrait) {
+        [self playToPortrait];
+        self.rorateBtn.selected = YES;
+    }
+    
+}
+
+// 进入后台
+- (void)playDidEnterEnterBackground {
+    [self pausePlay];
+    [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
+    // 记录
+    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:self.moviePlayer.currentPlaybackTime/self.moviePlayer.duration];
 }
 
 - (void)volumeDidChange:(NSNotification *)notification {
@@ -598,10 +631,15 @@
 }
 
 - (void)deviceOrientation:(NSNotification *)noti {
-    [self setNeedsDisplay];
-    [self layoutIfNeeded];
-    [self performSelector:@selector(continuePlay) withObject:nil afterDelay:0.5];
-    [self tapAction];
+    
+    if (_movieOrientation != [UIDevice currentDevice].orientation) {
+        _movieOrientation = [UIDevice currentDevice].orientation;
+        [self setNeedsDisplay];
+        [self layoutIfNeeded];
+        [self performSelector:@selector(continuePlay) withObject:nil afterDelay:0.5];
+        [self tapAction];
+    }
+    
 }
 
 #pragma mark - 根据时长求出字符串
@@ -649,7 +687,8 @@
             [self.delegate onMoviePlayerBackAction];
         }
     } else {
-        [self infoDidTouch:nil];
+        
+        [self rotateBtnDidTouch];
     }
 }
 

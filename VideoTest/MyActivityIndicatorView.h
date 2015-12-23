@@ -21,7 +21,7 @@ typedef NS_ENUM(NSInteger, BrightnessHUDStyle) {
 
 @interface VideoProgressHUD : UIView
 
-- (void)showWithVideoProgress:(CGFloat)progress text:(NSString *)text isForward:(BOOL)isForward;
+- (void)showWithVideoProgress:(CGFloat)progress text:(NSAttributedString *)text isForward:(BOOL)isForward;
 
 @end
 

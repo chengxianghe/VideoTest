@@ -74,6 +74,7 @@
 @property (nonatomic, strong) UILabel *textLabel;
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) ProgressView *progressView;
+//@property (nonatomic, copy) NSAttributedString *totalTimeStr;
 
 @end
 
@@ -113,13 +114,11 @@
     return self;
 }
 
-- (void)showWithVideoProgress:(CGFloat)progress text:(NSString *)text isForward:(BOOL)isForward {
+- (void)showWithVideoProgress:(CGFloat)progress text:(NSAttributedString *)text isForward:(BOOL)isForward {
     
-    NSString *imageName = isForward ? @"kuaijin" : @"kuaitui";
-    
-    self.imageView.image = [UIImage imageNamed:imageName];
-    self.textLabel.text = text;
+    self.imageView.image = [UIImage imageNamed:isForward ? @"kuaijin" : @"kuaitui"];
     [self.progressView setProgress:progress];
+    self.textLabel.attributedText = text;
 }
 
 @end

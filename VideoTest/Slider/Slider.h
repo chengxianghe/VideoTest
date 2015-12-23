@@ -16,9 +16,9 @@
 @interface Slider : UIView
 
 
-@property (nonatomic, strong) UIView *thumbView; // 滑块
+@property (nonatomic, strong) UIImageView *thumbView; // 滑块
 
-@property (nonatomic, assign) id<ProgressDelegate> delegate;
+@property (nonatomic, weak) id<ProgressDelegate> delegate;
 
 /**
  *  缓冲的进度

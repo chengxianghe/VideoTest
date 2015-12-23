@@ -16,12 +16,6 @@ typedef NS_ENUM(NSInteger, PanDirection){
     PanDirectionVerticalMovedBrightness
 };
 
-//typedef NS_ENUM(NSInteger, MovieOrientation) {
-//    MovieOrientationPortrait,
-//    MovieOrientationLandscape
-//    
-//};
-
 @protocol MoviePlayerDelegate <NSObject>
 
 - (void)onMoviePlayerBackAction;

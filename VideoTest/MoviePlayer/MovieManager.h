@@ -11,8 +11,8 @@
 
 //记住播放进度相关的数据库操作类
 @interface MovieManager : NSObject
-+ (MovieManager *)sharedInstance;
-- (void)addPlayRecordWithIdentifier:(NSString *)identifier progress:(CGFloat)progress;
-- (CGFloat)getProgressByIdentifier:(NSString *)identifier;
+
++ (void)addPlayRecordWithIdentifier:(NSString *)identifier progress:(CGFloat)progress;
++ (CGFloat)getProgressByIdentifier:(NSString *)identifier;
 
 @end
