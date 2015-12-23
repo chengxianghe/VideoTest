@@ -18,7 +18,6 @@
 		1491E0DF1C2AA63300AD0C42 /* AVMoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D21C2AA63300AD0C42 /* AVMoviePlayer.m */; };
 		1491E0E01C2AA63300AD0C42 /* MyIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D51C2AA63300AD0C42 /* MyIndicatorView.m */; };
 		1491E0E11C2AA63300AD0C42 /* Slider.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D71C2AA63300AD0C42 /* Slider.m */; };
-		1491E0E21C2AA63300AD0C42 /* VideoLoadingView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D91C2AA63300AD0C42 /* VideoLoadingView.m */; };
 		1491E0E31C2AA63300AD0C42 /* MovieManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0DB1C2AA63300AD0C42 /* MovieManager.m */; };
 		1491E0E41C2AA63300AD0C42 /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0DD1C2AA63300AD0C42 /* MoviePlayer.m */; };
 /* End PBXBuildFile section */
@@ -43,8 +42,6 @@
 		1491E0D51C2AA63300AD0C42 /* MyIndicatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyIndicatorView.m; sourceTree = "<group>"; };
 		1491E0D61C2AA63300AD0C42 /* Slider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slider.h; sourceTree = "<group>"; };
 		1491E0D71C2AA63300AD0C42 /* Slider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Slider.m; sourceTree = "<group>"; };
-		1491E0D81C2AA63300AD0C42 /* VideoLoadingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoLoadingView.h; sourceTree = "<group>"; };
-		1491E0D91C2AA63300AD0C42 /* VideoLoadingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoLoadingView.m; sourceTree = "<group>"; };
 		1491E0DA1C2AA63300AD0C42 /* MovieManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovieManager.h; sourceTree = "<group>"; };
 		1491E0DB1C2AA63300AD0C42 /* MovieManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MovieManager.m; sourceTree = "<group>"; };
 		1491E0DC1C2AA63300AD0C42 /* MoviePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MoviePlayer.h; sourceTree = "<group>"; };
@@ -129,8 +126,6 @@
 				1491E0D51C2AA63300AD0C42 /* MyIndicatorView.m */,
 				1491E0D61C2AA63300AD0C42 /* Slider.h */,
 				1491E0D71C2AA63300AD0C42 /* Slider.m */,
-				1491E0D81C2AA63300AD0C42 /* VideoLoadingView.h */,
-				1491E0D91C2AA63300AD0C42 /* VideoLoadingView.m */,
 			);
 			path = CustomView;
 			sourceTree = "<group>";
@@ -212,7 +207,6 @@
 				1410B0A21C24078600F78FA2 /* main.m in Sources */,
 				1491B70F1C25250600AD0C42 /* TestViewController.m in Sources */,
 				1491E0E31C2AA63300AD0C42 /* MovieManager.m in Sources */,
-				1491E0E21C2AA63300AD0C42 /* VideoLoadingView.m in Sources */,
 				1491E0DF1C2AA63300AD0C42 /* AVMoviePlayer.m in Sources */,
 				1491E0E11C2AA63300AD0C42 /* Slider.m in Sources */,
 				1491E0E41C2AA63300AD0C42 /* MoviePlayer.m in Sources */,

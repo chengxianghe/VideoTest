@@ -1,9 +1,9 @@
 //
-//  MyActivityIndicatorView.h
-//  DouBan
+//  MyIndicatorView.h
+//  VideoTest
 //
-//  Created by lanou on 15/10/26.
-//  Copyright (c) 2015年 UI. All rights reserved.
+//  Created by chengxianghe on 15/12/23.
+//  Copyright © 2015年 CXH. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

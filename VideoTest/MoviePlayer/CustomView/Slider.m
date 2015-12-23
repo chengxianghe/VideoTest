@@ -1,10 +1,9 @@
-
 //
 //  Slider.m
-//  ProgressSlider
+//  VideoTest
 //
-//  Created by lanou on 15/11/9.
-//  Copyright © 2015年 RockyFung. All rights reserved.
+//  Created by chengxianghe on 15/12/23.
+//  Copyright © 2015年 CXH. All rights reserved.
 //
 
 #import "Slider.h"
