@@ -9,7 +9,7 @@
 
 #import "Slider.h"
 
-#define kCacheViewHeight 20
+#define kCacheViewHeight 45
 
 
 @interface Slider ()
@@ -96,9 +96,7 @@
         if ((_maximumValue - _minimumValue) > 0) {
             self.cacheSliderView.frame = CGRectMake(0, (self.frame.size.height - kCacheViewHeight) / 2, _cacheProgress / (_maximumValue - _minimumValue) * self.frame.size.width, kCacheViewHeight);
 
-        }
-        
-        
+        }        
 
     }
  

@@ -1,18 +1,19 @@
 //
-//  MoviePlayer.h
-//  MoviePlayer
+//  AVMoviePlayer.h
+//  VideoTest
 //
-//  Created by lanou on 15/11/6.
-//  Copyright © 2015年 RockyFung. All rights reserved.
+//  Created by chengxianghe on 15/12/23.
+//  Copyright © 2015年 CXH. All rights reserved.
 //
 
 /**
- *  视频播放控件, MP框架 实现
+ *  视频播放控件, AV框架 实现
  */
 #import <UIKit/UIKit.h>
 #import "MoviePlayerHeader.h"
 
-@interface MoviePlayer : UIView
+
+@interface AVMoviePlayer : UIView
 
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, strong) UIButton *backBtn;     //返回按钮
@@ -31,5 +32,6 @@
 
 - (void)continuePlay;
 
-@end
+- (BOOL)isPlaying;
 
+@end

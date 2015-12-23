@@ -8,12 +8,15 @@
 
 #import "TestViewController.h"
 #import "MoviePlayer.h"
+#import "AVMoviePlayer.h"
 
 // 默认竖屏播放比例
 #define kScaleRadio (16/9.0)
 @interface TestViewController ()<MoviePlayerDelegate>
 
-@property (nonatomic, strong) MoviePlayer *mview;     //
+//@property (nonatomic, strong) MoviePlayer *mview;     //
+@property (nonatomic, strong) AVMoviePlayer *mview;     //
+
 @property (nonatomic, strong) NSURL *url;     //
 @property (nonatomic, assign) CGFloat brightness; //系统亮度
 
@@ -60,7 +63,9 @@
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
     
-    self.mview = [[MoviePlayer alloc] initWithFrame:CGRectZero URL:_url];
+//    self.mview = [[MoviePlayer alloc] initWithFrame:CGRectZero URL:_url];
+
+    self.mview = [[AVMoviePlayer alloc] initWithFrame:CGRectZero URL:_url];
     
     [self.view addSubview:self.mview];
     self.mview.title = @"测试视频";
@@ -71,9 +76,12 @@
     
 }
 
-- (void)onMoviePlayerBackAction {
-
+- (void)moviePlayerOnBackAction {
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)moviePlayerCompletionAction:(id)player {
+    NSLog(@"播放结束了啊: %@", [player class]);
 }
 
 - (void)didReceiveMemoryWarning {

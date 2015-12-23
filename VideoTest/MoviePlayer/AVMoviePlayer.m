@@ -1,23 +1,25 @@
 //
-//  MoviePlayer.m
-//  MoviePlayer
+//  AVMoviePlayer.m
+//  VideoTest
 //
-//  Created by lanou on 15/11/6.
-//  Copyright © 2015年 RockyFung. All rights reserved.
+//  Created by chengxianghe on 15/12/23.
+//  Copyright © 2015年 CXH. All rights reserved.
 //
 
-#import "MoviePlayer.h"
+#import "AVMoviePlayer.h"
+#import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import "MyActivityIndicatorView.h"
 #import "Slider.h"
 #import "MovieManager.h"
 
+#define kMakeCMTime(value) (CMTimeMakeWithSeconds(value, self.timescale))
 
+@interface AVMoviePlayer ()<ProgressDelegate>
 
+@property (nonatomic, strong) AVPlayer *moviePlayer; // 视频播放控件
+@property (nonatomic, strong) AVPlayerLayer *playerLayer;
 
-@interface MoviePlayer ()<ProgressDelegate>
-
-@property (nonatomic, strong) MPMoviePlayerController *moviePlayer; // 视频播放控件
 @property (nonatomic, strong) UIButton *play; // 播放按钮
 @property (nonatomic, strong) UIButton *rorateBtn; // 旋转按钮
 @property (nonatomic, strong) UILabel *beginLabel; // 开始的时间label
@@ -36,13 +38,14 @@
 @property (nonatomic, strong) VideoProgressHUD *videoProgressHud;     // <#注释#>
 @property (nonatomic, copy) NSAttributedString *totalTimeStr;
 @property (nonatomic, strong) NSURL *url;     // <#注释#>
-
+@property (nonatomic, assign) CMTimeScale	timescale;     // <#注释#>
 @end
 
-
-@implementation MoviePlayer {
+@implementation AVMoviePlayer{
     PanDirection panDirection; // 定义一个实例变量，保存枚举值
     CGFloat sumTime; // 用来保存快进的总时长
+    BOOL	_isPlayEnd;     // 是否播放结束了
+
 }
 
 - (void)dealloc {
@@ -63,18 +66,23 @@
         self.url = url;
         
         self.movieOrientation = [UIDevice currentDevice].orientation;
-
-        self.moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:url];
-        // 去除系统自带的控件
-        self.moviePlayer.controlStyle = MPMovieControlStyleNone;
-        // 视屏开始播放的时候，这个view开始响应用户的操作，把它关闭
-        self.moviePlayer.view.userInteractionEnabled = NO;
         
-        [self addSubview:self.moviePlayer.view];
+        AVAsset *movieAsset = [AVURLAsset URLAssetWithURL:url options:nil];
+        self.moviePlayer = [AVPlayer playerWithPlayerItem:[AVPlayerItem playerItemWithAsset:movieAsset]];
+        self.playerLayer = [AVPlayerLayer playerLayerWithPlayer:self.moviePlayer];
+//        self.moviePlayer.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+        _playerLayer.frame = self.bounds;
+        _playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+        [self.layer addSublayer:_playerLayer];
+        
         
         [self configUI];
         
         [self configNotification];
+        
+        [self addObserverToPlayerItem:self.moviePlayer.currentItem];
+        
+        
     }
     return self;
 }
@@ -140,7 +148,7 @@
     self.backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.backBtn setImage:[UIImage imageNamed:@"top_back_normal"] forState:UIControlStateNormal];
     [self.backBtn setImage:[UIImage imageNamed:@"top_back_active"] forState:UIControlStateSelected];
-
+    
     self.backBtn.titleLabel.font=[UIFont systemFontOfSize:16];
     [self.backBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.backBtn.showsTouchWhenHighlighted = YES;
@@ -228,37 +236,31 @@
     
     // 系统音量
     [center addObserver:self selector:@selector(volumeDidChange:) name:@"AVSystemController_SystemVolumeDidChangeNotification" object:nil];
-
+    
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-
+    
     // 系统亮度
     [center addObserver:self selector:@selector(brightnessDidChange:) name:UIScreenBrightnessDidChangeNotification object:nil];
     
     // 旋转方向
     [center addObserver:self selector:@selector(deviceOrientation:) name:UIDeviceOrientationDidChangeNotification object:nil];
     
-    // 接收视频时长可用的通知
-    [center addObserver:self selector:@selector(durationAvailable) name:MPMovieDurationAvailableNotification object:nil];
-    
-    // 接收网络视频加载完成的通知
-    [center addObserver:self selector:@selector(playPreparedToPlay:) name:MPMediaPlaybackIsPreparedToPlayDidChangeNotification object:nil];
-    
     // 播放结束的通知
-    [center addObserver:self selector:@selector(playFinished) name:MPMoviePlayerPlaybackDidFinishNotification object:nil];
+    [center addObserver:self selector:@selector(playFinished) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
     
     // 进入前台
     [center addObserver:self selector:@selector(playWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     // 进入后台
     [center addObserver:self selector:@selector(playDidEnterEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-
-
+    
+    
 }
 
 - (void)layoutSubviews {
     
     [super layoutSubviews];
     
-    self.moviePlayer.view.frame = self.bounds;
+    self.playerLayer.frame = self.bounds;
     self.play.frame = CGRectMake(0, 0, 60, 60);
     self.play.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
     
@@ -292,7 +294,7 @@
     
     self.videoProgressHud.frame = CGRectMake(0, 0, 160, 100);
     self.videoProgressHud.center = self.center;
-
+    
 }
 
 #pragma mark - PublicMethod
@@ -304,14 +306,20 @@
 - (void)stopPlay {
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
+    //CMTime是表示电影时间信息的结构体，第一个参数表示是视频第几秒，第二个参数表示每秒帧数.(如果要活的某一秒的第几帧可以使用CMTimeMake方法)
+    CGFloat current = CMTimeGetSeconds(self.moviePlayer.currentItem.currentTime);
+    CGFloat duration = CMTimeGetSeconds(self.moviePlayer.currentItem.duration);
+
     // 记录
-    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:self.moviePlayer.currentPlaybackTime/self.moviePlayer.duration];
+    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:current/duration];
+    
+    [self removeObserverFromPlayerItem:self.moviePlayer.currentItem];
     
     // 关闭定时器
     [self.timer invalidate];
     [self dismissAction];
-    [self.moviePlayer stop];
-    [self.moviePlayer.view removeFromSuperview];
+    [self.moviePlayer pause];
+    [self.playerLayer removeFromSuperlayer];
     self.progress.delegate  = nil;
     [self.brigntnessHud removeFromSuperview];
     self.brigntnessHud = nil;
@@ -329,17 +337,25 @@
     [self playMovie:self.play];
 }
 
+- (BOOL)isPlaying {
+    return self.play.selected;
+}
+
 #pragma mark - ProgressDelegate
 - (void)touchView:(float)value {
     // 跳转到指定位置
-    self.moviePlayer.currentPlaybackTime = value;
-    self.thumbTimeLabel.hidden = YES;
-    [self continuePlay];
-
+    [self.moviePlayer.currentItem cancelPendingSeeks];
+    [self.moviePlayer seekToTime:kMakeCMTime(value) completionHandler:^(BOOL finished) {
+        if (finished) {
+            self.thumbTimeLabel.hidden = YES;
+            [self continuePlay];
+        }
+    }];
+     
 }
 
 - (void)progressAction:(CGFloat)progress {
-
+    
     // 保证视图不消失
     [self viewNoDismiss];
     // 实时播放时间
@@ -354,16 +370,15 @@
     // 当用户互动滑块的时候不去赋值
     // 这里不用 touchInside，因为touchInside有yes和no，松手后滑块有可能不走
     if (!self.progress.highlighted) {
-        self.progress.value  = self.moviePlayer.currentPlaybackTime;
+        self.progress.value  = CMTimeGetSeconds(self.moviePlayer.currentTime);
         // 没点滑块的时候时间label隐藏
         self.thumbTimeLabel.highlighted = YES;
         
         // 实时播放时间
-        self.beginLabel.text = [self durationStringWithTime:(int)self.moviePlayer.currentPlaybackTime];
+        self.beginLabel.text = [self durationStringWithTime:(int)CMTimeGetSeconds(self.moviePlayer.currentTime)];
     }
-
-         // 计算视频缓冲长度
-    self.progress.cacheProgress = self.moviePlayer.playableDuration;
+    
+//    NSLog(@"%lld--%d", self.moviePlayer.currentTime.value,self.moviePlayer.currentTime.timescale);
 }
 
 #pragma mark - 平移手势方法
@@ -381,11 +396,11 @@
             if (x > y) { // 水平移动
                 panDirection = PanDirectionHorizontalMoved;
                 // 取消隐藏
-//                self.horizontalLabel.hidden = NO;
+                //                self.horizontalLabel.hidden = NO;
                 self.videoProgressHud.hidden = NO;
-
+                
                 // 给sumTime初值
-                sumTime = self.moviePlayer.currentPlaybackTime;
+                sumTime =  CMTimeGetSeconds(self.moviePlayer.currentTime);
             } else if (x < y){ // 垂直移动
                 
                 CGFloat xl = [pan locationInView:self].x;
@@ -395,13 +410,13 @@
                     // 显示音量控件
                     self.volume.hidden = NO;
                     // 开始滑动的时候，状态改为正在控制音量
-//                    isVolume = YES;
+                    //                    isVolume = YES;
                 } else if (xl > self.frame.size.width * 0.7) {
                     panDirection = PanDirectionVerticalMovedBrightness;
                     // 显示音量控件
                     self.brightnessSlider.hidden = NO;
                     // 开始滑动的时候，状态改为正在控制音量
-//                    isBrightness = YES;
+                    //                    isBrightness = YES;
                 }
             }
             break;
@@ -433,10 +448,10 @@
             switch (panDirection) {
                 case PanDirectionHorizontalMoved:{
                     // 隐藏视图
-//                    self.horizontalLabel.hidden = YES;
+                    //                    self.horizontalLabel.hidden = YES;
                     self.videoProgressHud.hidden = YES;
                     // ⚠️在滑动结束后，视屏要跳转
-                    self.moviePlayer.currentPlaybackTime = sumTime;
+                    [self.moviePlayer seekToTime:kMakeCMTime(sumTime)];
                     // 把sumTime滞空，不然会越加越多
                     sumTime = 0;
                     break;
@@ -458,8 +473,8 @@
     sumTime += value / 200;
     
     // 需要限定sumTime的范围
-    if (sumTime > self.moviePlayer.duration) {
-        sumTime = self.moviePlayer.duration;
+    if (sumTime > CMTimeGetSeconds(self.moviePlayer.currentItem.duration)) {
+        sumTime = CMTimeGetSeconds(self.moviePlayer.currentItem.duration);
     }else if (sumTime < 0){
         sumTime = 0;
     }
@@ -470,7 +485,7 @@
     
     NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:nowTime attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
     [str appendAttributedString:self.totalTimeStr];
-    [self.videoProgressHud showWithVideoProgress:sumTime/self.moviePlayer.duration text:str isForward:value > 0];
+    [self.videoProgressHud showWithVideoProgress:sumTime/CMTimeGetSeconds(self.moviePlayer.currentItem.duration) text:str isForward:value > 0];
     
 }
 
@@ -491,7 +506,7 @@
 
 #pragma mark  设备旋转
 - (void)rotateBtnDidTouch {
-
+    
     [self pausePlay];
     
     if (_movieOrientation == UIDeviceOrientationPortrait) {
@@ -524,7 +539,11 @@
 
 #pragma mark - 通知
 #pragma mark  视频加载好之后执行的通知
-- (void)durationAvailable {
+
+//    [self.activity startAnimating];
+
+- (void)playPreparedToPlay {
+    
     // 隐藏返回按钮
     self.topBackView.hidden = YES;
     
@@ -533,14 +552,18 @@
     
     // 给视频总时长赋值
     self.beginLabel.text = [self durationStringWithTime:(int)0];
-    self.endLabel.text = [self durationStringWithTime:(int)self.moviePlayer.duration];
+    self.endLabel.text = [self durationStringWithTime:(int)CMTimeGetSeconds(self.moviePlayer.currentItem.duration)];
     
     // videoHud
     self.totalTimeStr = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" / %@", self.endLabel.text] attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-
+    
     // 修改progress的最大值和最小值
-    self.progress.maximumValue = self.moviePlayer.duration;
+    self.progress.maximumValue = CMTimeGetSeconds(self.moviePlayer.currentItem.duration);
     self.progress.minimumValue = 0;
+    
+    self.timescale = self.moviePlayer.currentItem.duration.timescale;
+    NSLog(@"timescale--%d", self.timescale);
+
     
     // 添加平移手势，用来控制音量和快进快退
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panDirection:)];
@@ -550,67 +573,79 @@
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction)];
     [self addGestureRecognizer:tap];
     
-    [self.moviePlayer prepareToPlay];
-    
-
-    
-}
-
-//    [self.activity startAnimating];
-
-- (void)playPreparedToPlay:(NSNotification *)notification {
-    
-
-    if (self.timer == nil && self.moviePlayer.isPreparedToPlay) {
         // 加载完后添加timer
-        self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(playbackStates:) userInfo:nil repeats:YES];
-        [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(playbackStates:) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
         // 记录
-        self.moviePlayer.currentPlaybackTime = self.moviePlayer.duration * [MovieManager getProgressByIdentifier:[self.url absoluteString]];
-
+    CGFloat progress = [MovieManager getProgressByIdentifier:[self.url absoluteString]];
+    if (progress > 0 && progress < 1) {
+        [self.activity startAnimating];
+        [self.moviePlayer seekToTime:kMakeCMTime(progress * (self.progress.maximumValue-self.progress.minimumValue)) completionHandler:^(BOOL finished) {
+            if (finished) {
+                [self continuePlay];
+                [self.activity stopAnimating];
+            }
+        } ];
+    } else {
+        [self continuePlay];
     }
     
-  
+    
 }
 
 // 播放结束
 - (void)playFinished {
     //还原到起点
-    self.moviePlayer.currentPlaybackTime = 0;
-    [self tapAction];
-    [self pausePlay];
+    _isPlayEnd = YES;
     
-    if ([self.delegate respondsToSelector:@selector(moviePlayerCompletionAction:)]) {
-        [self.delegate moviePlayerCompletionAction:self];
-    }
+    [self.moviePlayer.currentItem cancelPendingSeeks];
+    [self.moviePlayer seekToTime:kMakeCMTime(0) completionHandler:^(BOOL finished) {
+        if (finished) {
+            [self tapAction];
+            [self pausePlay];
+
+            if ([self.delegate respondsToSelector:@selector(moviePlayerCompletionAction:)]) {
+                [self.delegate moviePlayerCompletionAction:self];
+            }
+            
+        }
+    }];
+
 }
 
 //进入前台 再次进入前台要 转竖屏
 - (void)playWillEnterForeground {
     
     [self pausePlay];
+    [self.activity startAnimating];
+    
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-
+    
     if (_movieOrientation != UIDeviceOrientationPortrait) {
         [self playToPortrait];
         self.rorateBtn.selected = YES;
     }
+    
+    [self.activity stopAnimating];
+    [self continuePlay];
     
 }
 
 // 进入后台
 - (void)playDidEnterEnterBackground {
     [self pausePlay];
+    
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
+
     // 记录
-    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:self.moviePlayer.currentPlaybackTime/self.moviePlayer.duration];
+    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:CMTimeGetSeconds(self.moviePlayer.currentTime)/CMTimeGetSeconds(self.moviePlayer.currentItem.duration)];
 }
 
 - (void)volumeDidChange:(NSNotification *)notification {
     self.volume.hidden = NO;
     NSString *volumeS = notification.userInfo[@"AVSystemController_AudioVolumeNotificationParameter"];
     self.volume.value = volumeS.floatValue; // 越小幅度越小
-
+    
     [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(hiddenView:) object:_volume];
     [self performSelector:@selector(hiddenView:) withObject:_volume afterDelay:2];
 }
@@ -625,8 +660,8 @@
     [self.brigntnessHud setProgress:_brightnessSlider.value];
     [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(hiddenView:) object:self.brigntnessHud];
     [self performSelector:@selector(hiddenView:) withObject:self.brigntnessHud afterDelay:2];
-
-
+    
+    
 }
 
 - (void)deviceOrientation:(NSNotification *)noti {
@@ -671,7 +706,7 @@
     self.play.hidden = !self.play.hidden;
     self.bottomSliderView.hidden = !self.bottomSliderView.hidden;
     self.topBackView.hidden = !self.topBackView.hidden;
-
+    
     [[UIApplication sharedApplication] setStatusBarHidden:self.topBackView.hidden withAnimation:UIStatusBarAnimationNone];
 }
 
@@ -681,7 +716,7 @@
     if (_movieOrientation == UIDeviceOrientationPortrait) {
         
         [self stopPlay];
-
+        
         if ([self.delegate respondsToSelector:@selector(moviePlayerOnBackAction)]) {
             [self.delegate moviePlayerOnBackAction];
         }
@@ -710,6 +745,69 @@
 
 - (void)hiddenView:(UIView *)view {
     view.hidden = YES;
+}
+
+
+
+/**
+ *  给AVPlayerItem添加监控
+ *
+ *  @param playerItem AVPlayerItem对象
+ */
+-(void)addObserverToPlayerItem:(AVPlayerItem *)playerItem{
+    //监控状态属性，注意AVPlayer也有一个status属性，通过监控它的status也可以获得播放状态
+    [playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+    //监控网络加载情况属性
+    [playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
+}
+-(void)removeObserverFromPlayerItem:(AVPlayerItem *)playerItem{
+    [playerItem removeObserver:self forKeyPath:@"status"];
+    [playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+}
+/**
+ *  通过KVO监控播放器状态
+ *
+ *  @param keyPath 监控属性
+ *  @param object  监视器
+ *  @param change  状态改变
+ *  @param context 上下文
+ */
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context{
+    AVPlayerItem *playerItem=object;
+    if ([keyPath isEqualToString:@"status"]) {
+        AVPlayerStatus status= [[change objectForKey:@"new"] intValue];
+        if(status==AVPlayerStatusReadyToPlay){
+            NSLog(@"正在播放...，视频总长度:%.2f, timescale:%d",CMTimeGetSeconds(playerItem.duration), playerItem.duration.timescale);
+            if (self.timer == nil) {
+
+                [self playPreparedToPlay];
+                NSLog(@"播放.------");
+            } else {
+                [self.activity stopAnimating];
+                [self continuePlay];
+            }
+        }
+    }else if([keyPath isEqualToString:@"loadedTimeRanges"]){
+        
+        if (_isPlayEnd) {
+            return;
+        }
+        
+        if (![self.activity isAnimating] && self.moviePlayer.rate == 0) {
+            [self.activity startAnimating];
+        } else if (self.moviePlayer.rate > 0) {
+            [self.activity stopAnimating];
+        }
+        NSArray *array=playerItem.loadedTimeRanges;
+        CMTimeRange timeRange = [array.firstObject CMTimeRangeValue];//本次缓冲时间范围
+        float startSeconds = CMTimeGetSeconds(timeRange.start);
+        float durationSeconds = CMTimeGetSeconds(timeRange.duration);
+        NSTimeInterval totalBuffer = startSeconds + durationSeconds;//缓冲总长度
+        NSLog(@"共缓冲：%.2f",totalBuffer);
+                //
+        // 计算视频缓冲长度
+        self.progress.cacheProgress = totalBuffer;
+    }
 }
 
 @end

@@ -14,12 +14,13 @@
 		1410B0AD1C24078600F78FA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1410B0AC1C24078600F78FA2 /* Assets.xcassets */; };
 		1410B0B01C24078600F78FA2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1410B0AE1C24078600F78FA2 /* LaunchScreen.storyboard */; };
 		1410B0B81C24083000F78FA2 /* 2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 1410B0B71C24083000F78FA2 /* 2.mp4 */; };
-		1410B0BD1C24087E00F78FA2 /* nil.png in Resources */ = {isa = PBXBuildFile; fileRef = 1410B0BA1C24087E00F78FA2 /* nil.png */; };
-		1410B0BE1C24087E00F78FA2 /* Slider.m in Sources */ = {isa = PBXBuildFile; fileRef = 1410B0BC1C24087E00F78FA2 /* Slider.m */; };
-		1410B0C61C24088800F78FA2 /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1410B0C21C24088800F78FA2 /* MoviePlayer.m */; };
-		1410B0CE1C2408B800F78FA2 /* MyActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1410B0CD1C2408B800F78FA2 /* MyActivityIndicatorView.m */; };
 		1491B70F1C25250600AD0C42 /* TestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491B70E1C25250600AD0C42 /* TestViewController.m */; };
-		1491B7121C253ED600AD0C42 /* MovieManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491B7111C253ED600AD0C42 /* MovieManager.m */; };
+		1491E0DF1C2AA63300AD0C42 /* AVMoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D21C2AA63300AD0C42 /* AVMoviePlayer.m */; };
+		1491E0E01C2AA63300AD0C42 /* MyActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D51C2AA63300AD0C42 /* MyActivityIndicatorView.m */; };
+		1491E0E11C2AA63300AD0C42 /* Slider.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D71C2AA63300AD0C42 /* Slider.m */; };
+		1491E0E21C2AA63300AD0C42 /* VideoLoadingView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0D91C2AA63300AD0C42 /* VideoLoadingView.m */; };
+		1491E0E31C2AA63300AD0C42 /* MovieManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0DB1C2AA63300AD0C42 /* MovieManager.m */; };
+		1491E0E41C2AA63300AD0C42 /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1491E0DD1C2AA63300AD0C42 /* MoviePlayer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,17 +35,21 @@
 		1410B0AF1C24078600F78FA2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1410B0B11C24078600F78FA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1410B0B71C24083000F78FA2 /* 2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 2.mp4; sourceTree = "<group>"; };
-		1410B0BA1C24087E00F78FA2 /* nil.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = nil.png; sourceTree = "<group>"; };
-		1410B0BB1C24087E00F78FA2 /* Slider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slider.h; sourceTree = "<group>"; };
-		1410B0BC1C24087E00F78FA2 /* Slider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Slider.m; sourceTree = "<group>"; };
-		1410B0C11C24088800F78FA2 /* MoviePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MoviePlayer.h; sourceTree = "<group>"; };
-		1410B0C21C24088800F78FA2 /* MoviePlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MoviePlayer.m; sourceTree = "<group>"; };
-		1410B0CC1C2408B800F78FA2 /* MyActivityIndicatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MyActivityIndicatorView.h; path = ../MyActivityIndicatorView.h; sourceTree = "<group>"; };
-		1410B0CD1C2408B800F78FA2 /* MyActivityIndicatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MyActivityIndicatorView.m; path = ../MyActivityIndicatorView.m; sourceTree = "<group>"; };
 		1491B70D1C25250600AD0C42 /* TestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestViewController.h; sourceTree = "<group>"; };
 		1491B70E1C25250600AD0C42 /* TestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestViewController.m; sourceTree = "<group>"; };
-		1491B7101C253ED600AD0C42 /* MovieManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovieManager.h; sourceTree = "<group>"; };
-		1491B7111C253ED600AD0C42 /* MovieManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MovieManager.m; sourceTree = "<group>"; };
+		1491E0D11C2AA63300AD0C42 /* AVMoviePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVMoviePlayer.h; sourceTree = "<group>"; };
+		1491E0D21C2AA63300AD0C42 /* AVMoviePlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AVMoviePlayer.m; sourceTree = "<group>"; };
+		1491E0D41C2AA63300AD0C42 /* MyActivityIndicatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyActivityIndicatorView.h; sourceTree = "<group>"; };
+		1491E0D51C2AA63300AD0C42 /* MyActivityIndicatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyActivityIndicatorView.m; sourceTree = "<group>"; };
+		1491E0D61C2AA63300AD0C42 /* Slider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slider.h; sourceTree = "<group>"; };
+		1491E0D71C2AA63300AD0C42 /* Slider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Slider.m; sourceTree = "<group>"; };
+		1491E0D81C2AA63300AD0C42 /* VideoLoadingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoLoadingView.h; sourceTree = "<group>"; };
+		1491E0D91C2AA63300AD0C42 /* VideoLoadingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoLoadingView.m; sourceTree = "<group>"; };
+		1491E0DA1C2AA63300AD0C42 /* MovieManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovieManager.h; sourceTree = "<group>"; };
+		1491E0DB1C2AA63300AD0C42 /* MovieManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MovieManager.m; sourceTree = "<group>"; };
+		1491E0DC1C2AA63300AD0C42 /* MoviePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MoviePlayer.h; sourceTree = "<group>"; };
+		1491E0DD1C2AA63300AD0C42 /* MoviePlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MoviePlayer.m; sourceTree = "<group>"; };
+		1491E0DE1C2AA63300AD0C42 /* MoviePlayerHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MoviePlayerHeader.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +82,7 @@
 		1410B09F1C24078600F78FA2 /* VideoTest */ = {
 			isa = PBXGroup;
 			children = (
-				1410B0BF1C24088800F78FA2 /* MoviePlayer */,
+				1491E0D01C2AA63300AD0C42 /* MoviePlayer */,
 				1410B0A31C24078600F78FA2 /* AppDelegate.h */,
 				1410B0A41C24078600F78FA2 /* AppDelegate.m */,
 				1410B0A61C24078600F78FA2 /* ViewController.h */,
@@ -102,29 +107,32 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		1410B0B91C24087E00F78FA2 /* Slider */ = {
+		1491E0D01C2AA63300AD0C42 /* MoviePlayer */ = {
 			isa = PBXGroup;
 			children = (
-				1410B0BA1C24087E00F78FA2 /* nil.png */,
-				1410B0BB1C24087E00F78FA2 /* Slider.h */,
-				1410B0BC1C24087E00F78FA2 /* Slider.m */,
-			);
-			name = Slider;
-			path = ../Slider;
-			sourceTree = "<group>";
-		};
-		1410B0BF1C24088800F78FA2 /* MoviePlayer */ = {
-			isa = PBXGroup;
-			children = (
-				1410B0CC1C2408B800F78FA2 /* MyActivityIndicatorView.h */,
-				1410B0CD1C2408B800F78FA2 /* MyActivityIndicatorView.m */,
-				1410B0B91C24087E00F78FA2 /* Slider */,
-				1410B0C11C24088800F78FA2 /* MoviePlayer.h */,
-				1410B0C21C24088800F78FA2 /* MoviePlayer.m */,
-				1491B7101C253ED600AD0C42 /* MovieManager.h */,
-				1491B7111C253ED600AD0C42 /* MovieManager.m */,
+				1491E0D31C2AA63300AD0C42 /* CustomView */,
+				1491E0DE1C2AA63300AD0C42 /* MoviePlayerHeader.h */,
+				1491E0DA1C2AA63300AD0C42 /* MovieManager.h */,
+				1491E0DB1C2AA63300AD0C42 /* MovieManager.m */,
+				1491E0D11C2AA63300AD0C42 /* AVMoviePlayer.h */,
+				1491E0D21C2AA63300AD0C42 /* AVMoviePlayer.m */,
+				1491E0DC1C2AA63300AD0C42 /* MoviePlayer.h */,
+				1491E0DD1C2AA63300AD0C42 /* MoviePlayer.m */,
 			);
 			path = MoviePlayer;
+			sourceTree = "<group>";
+		};
+		1491E0D31C2AA63300AD0C42 /* CustomView */ = {
+			isa = PBXGroup;
+			children = (
+				1491E0D41C2AA63300AD0C42 /* MyActivityIndicatorView.h */,
+				1491E0D51C2AA63300AD0C42 /* MyActivityIndicatorView.m */,
+				1491E0D61C2AA63300AD0C42 /* Slider.h */,
+				1491E0D71C2AA63300AD0C42 /* Slider.m */,
+				1491E0D81C2AA63300AD0C42 /* VideoLoadingView.h */,
+				1491E0D91C2AA63300AD0C42 /* VideoLoadingView.m */,
+			);
+			path = CustomView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -187,7 +195,6 @@
 				1410B0B01C24078600F78FA2 /* LaunchScreen.storyboard in Resources */,
 				1410B0AD1C24078600F78FA2 /* Assets.xcassets in Resources */,
 				1410B0B81C24083000F78FA2 /* 2.mp4 in Resources */,
-				1410B0BD1C24087E00F78FA2 /* nil.png in Resources */,
 				1410B0AB1C24078600F78FA2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -200,13 +207,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				1410B0A81C24078600F78FA2 /* ViewController.m in Sources */,
-				1410B0CE1C2408B800F78FA2 /* MyActivityIndicatorView.m in Sources */,
+				1491E0E01C2AA63300AD0C42 /* MyActivityIndicatorView.m in Sources */,
 				1410B0A51C24078600F78FA2 /* AppDelegate.m in Sources */,
-				1410B0BE1C24087E00F78FA2 /* Slider.m in Sources */,
 				1410B0A21C24078600F78FA2 /* main.m in Sources */,
-				1491B7121C253ED600AD0C42 /* MovieManager.m in Sources */,
 				1491B70F1C25250600AD0C42 /* TestViewController.m in Sources */,
-				1410B0C61C24088800F78FA2 /* MoviePlayer.m in Sources */,
+				1491E0E31C2AA63300AD0C42 /* MovieManager.m in Sources */,
+				1491E0E21C2AA63300AD0C42 /* VideoLoadingView.m in Sources */,
+				1491E0DF1C2AA63300AD0C42 /* AVMoviePlayer.m in Sources */,
+				1491E0E11C2AA63300AD0C42 /* Slider.m in Sources */,
+				1491E0E41C2AA63300AD0C42 /* MoviePlayer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
