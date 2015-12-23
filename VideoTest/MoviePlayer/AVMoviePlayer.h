@@ -16,8 +16,6 @@
 @interface AVMoviePlayer : UIView
 
 @property (nonatomic, copy) NSString *title;
-@property (nonatomic, strong) UIButton *backBtn;     //返回按钮
-@property (nonatomic, strong) NSTimer *timer; // 定时器
 @property (nonatomic, weak) id <MoviePlayerDelegate> delegate;     //
 
 // 初始化方法

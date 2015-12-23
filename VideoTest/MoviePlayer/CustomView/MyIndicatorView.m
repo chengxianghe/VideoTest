@@ -6,7 +6,7 @@
 //  Copyright (c) 2015年 UI. All rights reserved.
 //
 
-#import "MyActivityIndicatorView.h"
+#import "MyIndicatorView.h"
 
 #define kWidth [UIScreen mainScreen].bounds.size.width
 #define KHeight [UIScreen mainScreen].bounds.size.height
@@ -175,7 +175,7 @@
 
 @end
 
-@implementation MyActivityIndicatorView
+@implementation MyIndicatorView
 
 - (instancetype)initWithFrame:(CGRect)frame
 {

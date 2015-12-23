@@ -26,7 +26,7 @@ typedef NS_ENUM(NSInteger, BrightnessHUDStyle) {
 @end
 
 
-@interface MyActivityIndicatorView : UIActivityIndicatorView
+@interface MyIndicatorView : UIActivityIndicatorView
 
 @end
 

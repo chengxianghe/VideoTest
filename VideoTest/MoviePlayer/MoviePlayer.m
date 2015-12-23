@@ -8,42 +8,42 @@
 
 #import "MoviePlayer.h"
 #import <MediaPlayer/MediaPlayer.h>
-#import "MyActivityIndicatorView.h"
+#import "MyIndicatorView.h"
 #import "Slider.h"
 #import "MovieManager.h"
-
-
-
 
 @interface MoviePlayer ()<ProgressDelegate>
 
 @property (nonatomic, strong) MPMoviePlayerController *moviePlayer; // 视频播放控件
-@property (nonatomic, strong) UIButton *play; // 播放按钮
-@property (nonatomic, strong) UIButton *rorateBtn; // 旋转按钮
-@property (nonatomic, strong) UILabel *beginLabel; // 开始的时间label
-@property (nonatomic, strong) UILabel *endLabel; // 结束时间label
-@property (nonatomic, strong) UISlider *volume; //声音进度条
-@property (nonatomic, strong) UISlider *brightnessSlider; //声音进度条
-@property (nonatomic, strong) UIView *bottomSliderView; // 进度条和时间label底部的view
-@property (nonatomic, strong) Slider *progress;
-@property (nonatomic, strong) MyActivityIndicatorView *activity; // 添加菊花动画
-@property (nonatomic, strong) UILabel *thumbTimeLabel; // 添加到滑块上的时间显示label
-@property (nonatomic, strong) UISlider *volumeSlider; // 用来接收系统音量条
-@property (nonatomic, assign) UIDeviceOrientation   movieOrientation; // 旋转方向
-@property (nonatomic, strong) UIView *topBackView; //
-@property (nonatomic, strong) UILabel *titleLabel; //
-@property (nonatomic, strong) BrightnessHUD *brigntnessHud;     //
-@property (nonatomic, strong) VideoProgressHUD *videoProgressHud;     // <#注释#>
-@property (nonatomic, copy) NSAttributedString *totalTimeStr;
-@property (nonatomic, strong) NSURL *url;     // <#注释#>
+@property (nonatomic, strong) NSTimer *timer; // 定时器
+
+@property (nonatomic, strong) UIButton  *play; // 播放按钮
+@property (nonatomic, strong) UIButton  *backBtn; //返回按钮
+@property (nonatomic, strong) UIButton  *rorateBtn; // 旋转按钮
+@property (nonatomic, strong) UILabel   *beginLabel; // 开始的时间label
+@property (nonatomic, strong) UILabel   *endLabel; // 结束时间label
+@property (nonatomic, strong) UILabel   *titleLabel; // 视频标题
+@property (nonatomic, strong) UILabel   *thumbTimeLabel; // 添加到滑块上的时间显示label
+@property (nonatomic, strong) UIView    *bottomSliderView; // 进度条和时间label底部的view
+@property (nonatomic, strong) UIView    *topBackView; // 视频顶部view
+
+@property (nonatomic, strong) UISlider  *volume; //声音进度条
+@property (nonatomic, strong) UISlider  *brightnessSlider; //亮度进度条
+@property (nonatomic, strong) UISlider  *volumeSlider; // 用来接收和更改系统音量条
+@property (nonatomic, strong) Slider    *progress; // 视频底部进度条
+
+@property (nonatomic, strong) MyIndicatorView   *activity; // 添加菊花动画
+@property (nonatomic, strong) BrightnessHUD     *brigntnessHud; // 模仿系统的亮度提示HUD
+@property (nonatomic, strong) VideoProgressHUD  *videoProgressHud; // 快进/快退 HUD
+
+@property (nonatomic, assign) UIDeviceOrientation movieOrientation; // 旋转方向
+@property (nonatomic,   copy) NSAttributedString *totalTimeStr; //总时间
+@property (nonatomic, strong) NSURL *url;     // 视频url
 
 @end
 
 
-@implementation MoviePlayer {
-    PanDirection panDirection; // 定义一个实例变量，保存枚举值
-    CGFloat sumTime; // 用来保存快进的总时长
-}
+@implementation MoviePlayer
 
 - (void)dealloc {
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
@@ -149,7 +149,7 @@
     [self.topBackView addSubview:self.backBtn];
     
     // 添加菊花动画
-    self.activity = [[MyActivityIndicatorView alloc]init];
+    self.activity = [[MyIndicatorView alloc]init];
     [self addSubview:self.activity];
     [self.activity startAnimating];
     
@@ -372,6 +372,10 @@
     // 根据上次和本次移动的位置，算出一个速率的point
     CGPoint veloctyPoint = [pan velocityInView:self];
     // 判断是垂直移动还是水平移动
+    PanDirection panDirection;
+    // 用来保存快进的总时长
+    CGFloat sumTime = 0;
+    
     switch (pan.state) {
         case UIGestureRecognizerStateBegan:{ // 开始移动
             // 使用绝对值来判断移动的方向
@@ -381,9 +385,7 @@
             if (x > y) { // 水平移动
                 panDirection = PanDirectionHorizontalMoved;
                 // 取消隐藏
-//                self.horizontalLabel.hidden = NO;
                 self.videoProgressHud.hidden = NO;
-
                 // 给sumTime初值
                 sumTime = self.moviePlayer.currentPlaybackTime;
             } else if (x < y){ // 垂直移动
@@ -394,14 +396,10 @@
                     panDirection = PanDirectionVerticalMovedVolume;
                     // 显示音量控件
                     self.volume.hidden = NO;
-                    // 开始滑动的时候，状态改为正在控制音量
-//                    isVolume = YES;
                 } else if (xl > self.frame.size.width * 0.7) {
                     panDirection = PanDirectionVerticalMovedBrightness;
                     // 显示音量控件
                     self.brightnessSlider.hidden = NO;
-                    // 开始滑动的时候，状态改为正在控制音量
-//                    isBrightness = YES;
                 }
             }
             break;
@@ -409,7 +407,7 @@
         case UIGestureRecognizerStateChanged:{ // 正在移动
             switch (panDirection) {
                 case PanDirectionHorizontalMoved:{
-                    [self horizontalMoved:veloctyPoint.x]; // 水平移动的方法只要x方向的值
+                    [self horizontalMoved:veloctyPoint.x sumTime:sumTime]; // 水平移动的方法只要x方向的值
                     break;
                 }
                 case PanDirectionVerticalMovedVolume:{
@@ -452,7 +450,7 @@
 }
 
 #pragma mark - pan水平移动的方法
-- (void)horizontalMoved:(CGFloat)value {
+- (void)horizontalMoved:(CGFloat)value sumTime:(CGFloat)sumTime {
     // 快进快退的方法
     // 每次滑动需要叠加时间
     sumTime += value / 200;
