@@ -63,17 +63,15 @@
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
     
-//    self.mview = [[MoviePlayer alloc] initWithFrame:CGRectZero URL:_url];
+//    self.mview = [[MoviePlayer alloc] initWithFrame:CGRectZero title:@"测试视频" URL:_url];
 
-    self.mview = [[AVMoviePlayer alloc] initWithFrame:CGRectZero URL:_url];
+    self.mview = [[AVMoviePlayer alloc] initWithFrame:CGRectZero title:@"测试视频" URL:_url];
     
     [self.view addSubview:self.mview];
-    self.mview.title = @"测试视频";
 
     self.mview.delegate = self;
     
     self.brightness = [UIScreen mainScreen].brightness;
-    
 }
 
 - (void)moviePlayerOnBackAction {

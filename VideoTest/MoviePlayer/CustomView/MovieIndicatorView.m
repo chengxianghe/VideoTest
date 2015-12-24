@@ -6,26 +6,54 @@
 //  Copyright © 2015年 CXH. All rights reserved.
 //
 
-#import "MyIndicatorView.h"
+#import "MovieIndicatorView.h"
 
 #define kWidth [UIScreen mainScreen].bounds.size.width
 #define KHeight [UIScreen mainScreen].bounds.size.height
 #define MYCOLOR [UIColor blackColor]
 
 
+@implementation MovieIndicatorView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        // 菊花背景的大小
+        self.frame = CGRectMake(kWidth/2-50, KHeight/2-50, 100, 100);
+        // 菊花的背景色
+        self.backgroundColor = MYCOLOR;
+        self.layer.cornerRadius = 10;
+        // 菊花的颜色和格式（白色、白色大、灰色）
+        self.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+        // 在菊花下面添加文字
+        UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(10, 60, 80, 40)];
+        label.text = @"loading...";
+        label.font = [UIFont systemFontOfSize:14];
+        label.textAlignment = NSTextAlignmentCenter;
+        label.textColor = [UIColor whiteColor];
+        [self addSubview:label];
+    }
+    return self;
+}
+
+@end
+
 @interface BrightnessHUD()
-@property (nonatomic, strong) UILabel *textLabel;     // <#注释#>
-@property (nonatomic, strong) UIImageView *imageView;     // <#注释#>
-@property (nonatomic, strong) ProgressView *progressView;     // <#注释#>
+
+@property (nonatomic, strong) UILabel *textLabel;     //
+@property (nonatomic, strong) UIImageView *imageView;     //
+@property (nonatomic, strong) ProgressView *progressView;     //
+
 @end
 
 @implementation BrightnessHUD
 
-- (instancetype)init
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    self = [super init];
+    self = [super initWithFrame:frame];
     if (self) {
-        self.frame = CGRectMake(0, 0, 160, 170);
+        self.frame = CGRectMake(0, 0, 150, 160);
         self.center = CGPointMake(kWidth/2, KHeight/2);
         self.backgroundColor = [UIColor whiteColor];
         self.layer.cornerRadius = 10;
@@ -33,7 +61,6 @@
         
         CGFloat width = self.frame.size.width - 20;
 
-        // 在菊花下面添加文字
         self.textLabel = [[UILabel alloc]init];
         self.textLabel.frame = CGRectMake(10, 10, width, 20);
         self.textLabel.text = @"亮度";
@@ -42,28 +69,36 @@
         self.textLabel.textColor = [UIColor blackColor];
         [self addSubview:self.textLabel];
         
-        
-//        if (style == BrightnessHUDStyleBlack) {
-//            [self sharedInstance].imageView.image = [UIImage imageNamed:@"playgesture_BrightnessSun6"];
-//        } else {
-//            [self sharedInstance].imageView.image = [UIImage imageNamed:@"playgesture_BrightnessSun"];
-//        }
-        self.imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"playgesture_BrightnessSun6"]];
+        self.imageView = [[UIImageView alloc] init];
         CGFloat imageW = 80;
         self.imageView.frame = CGRectMake((self.frame.size.width-imageW)/2, (self.frame.size.height-imageW)/2, imageW, imageW);
 
         [self addSubview:self.imageView];
         
-        self.progressView = [[ProgressView alloc] initWithTintImage:@"playgesture_BrightnessProgress" BackImage:@"playgesture_BrightnessProgressBg"];
-        self.progressView.frame = CGRectMake(8, self.frame.size.height - 40, 150, 30);
+        self.progressView = [[ProgressView alloc] init];
+        self.progressView.frame = CGRectMake(0, 0, 136, 30);
+        self.progressView.center = CGPointMake(self.frame.size.width/2, self.frame.size.height - 20);
         [self addSubview:self.progressView];
         
+        self.style = BrightnessHUDStyleBlack;
+
     }
     return self;
 }
 
+- (void)setStyle:(BrightnessHUDStyle)style {
+    _style = style;
+    if (style == BrightnessHUDStyleBlack) {
+        self.imageView.image = [UIImage imageNamed:@"playgesture_BrightnessSun6"];
+        [self.progressView setTintImage:@"playgesture_BrightnessProgress" BackImage:@"playgesture_BrightnessProgressBg"];
 
-- (void)setProgress:(CGFloat)progress {
+    } else {
+        self.imageView.image = [UIImage imageNamed:@"playgesture_BrightnessSun"];
+        [self.progressView setTintImage:@"playgesture_BrightnessProgressBg" BackImage:@"playgesture_BrightnessProgress"];
+    }
+}
+
+- (void)setProgress:(CGFloat)progress {    
     [self.progressView setProgress:progress];
 }
 
@@ -74,15 +109,14 @@
 @property (nonatomic, strong) UILabel *textLabel;
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) ProgressView *progressView;
-//@property (nonatomic, copy) NSAttributedString *totalTimeStr;
 
 @end
 
 @implementation VideoProgressHUD
 
-- (instancetype)init
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    self = [super init];
+    self = [super initWithFrame:frame];
     if (self) {
         
         self.frame = CGRectMake(0, 0, 160, 100);
@@ -105,7 +139,8 @@
         self.textLabel.textColor = [UIColor whiteColor];
         [self addSubview:self.textLabel];
 
-        self.progressView = [[ProgressView alloc] initWithTintColor:[UIColor blueColor] BackColor:[UIColor clearColor]];
+        self.progressView = [[ProgressView alloc] init];
+        [self.progressView setTintColor:[UIColor blueColor] BackColor:[UIColor clearColor]];
         self.progressView.frame = CGRectMake(0, 0, width, 3);
         self.progressView.center = CGPointMake(self.center.x, self.frame.size.height - 10);
 
@@ -133,9 +168,9 @@
 
 @implementation ProgressView
 
-- (instancetype)init
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    self = [super init];
+    self = [super initWithFrame:frame];
     if (self) {
         self.tintImageView = [[UIImageView alloc] init];
         self.backImageView = [[UIImageView alloc] init];
@@ -150,53 +185,19 @@
     return self;
 }
 
-- (instancetype)initWithTintColor:(UIColor *)tintColor BackColor:(UIColor *)backColor {
-    self = [self init];
-    if (self) {
-        self.tintImageView.backgroundColor = tintColor;
-        self.backImageView.backgroundColor = backColor;
-    }
-    return self;
+- (void)setTintColor:(UIColor *)tintColor BackColor:(UIColor *)backColor {
+    self.tintImageView.backgroundColor = tintColor;
+    self.backImageView.backgroundColor = backColor;
 }
 
-- (instancetype)initWithTintImage:(NSString *)tintImage BackImage:(NSString *)backImage {
-    self = [self init];
-    if (self) {
-        self.tintImageView.image = [UIImage imageNamed:tintImage];
-        self.backImageView.image = [UIImage imageNamed:backImage];
-    }
-    return self;
+- (void)setTintImage:(NSString *)tintImage BackImage:(NSString *)backImage {
+    self.tintImageView.image = [UIImage imageNamed:tintImage];
+    self.backImageView.image = [UIImage imageNamed:backImage];
 }
 
 - (void)setProgress:(CGFloat)progress {
     self.backImageView.frame = self.bounds;
     self.tintImageView.frame = CGRectMake(0, 0, self.bounds.size.width * progress, self.bounds.size.height);
-}
-
-@end
-
-@implementation MyIndicatorView
-
-- (instancetype)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        // 菊花背景的大小
-        self.frame = CGRectMake(kWidth/2-50, KHeight/2-50, 100, 100);
-        // 菊花的背景色
-        self.backgroundColor = MYCOLOR;
-        self.layer.cornerRadius = 10;
-        // 菊花的颜色和格式（白色、白色大、灰色）
-        self.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
-        // 在菊花下面添加文字
-        UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(10, 60, 80, 40)];
-        label.text = @"loading...";
-        label.font = [UIFont systemFontOfSize:14];
-        label.textAlignment = NSTextAlignmentCenter;
-        label.textColor = [UIColor whiteColor];
-        [self addSubview:label];
-    }
-    return  self;
 }
 
 @end

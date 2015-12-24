@@ -1,27 +1,27 @@
 //
-//  Slider.m
+//  MovieSlider.m
 //  VideoTest
 //
 //  Created by chengxianghe on 15/12/23.
 //  Copyright © 2015年 CXH. All rights reserved.
 //
 
-#import "Slider.h"
+#import "MovieSlider.h"
 
 #define kCacheViewHeight 45
 
 
-@interface Slider ()
+@interface MovieSlider ()
 
-@property (nonatomic, strong) UIImageView *cacheSliderView;
-@property (nonatomic, strong) UIView *backSliderView;
-@property (nonatomic, strong) UIImageView *recoderSliderView;
-@property (nonatomic, strong) UIView *touchView;
+@property (nonatomic, strong) UIImageView   *cacheSliderView;
+@property (nonatomic, strong) UIView        *backSliderView;
+@property (nonatomic, strong) UIImageView   *recoderSliderView;
+@property (nonatomic, strong) UIView        *touchView;
 
 @end
 
 
-@implementation Slider {
+@implementation MovieSlider {
     BOOL _isOut;
 }
 

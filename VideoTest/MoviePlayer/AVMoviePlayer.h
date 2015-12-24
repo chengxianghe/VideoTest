@@ -15,21 +15,21 @@
 
 @interface AVMoviePlayer : UIView
 
-@property (nonatomic, copy) NSString *title;
 @property (nonatomic, weak) id <MoviePlayerDelegate> delegate;     //
 
 // 初始化方法
-- (instancetype)initWithFrame:(CGRect)frame URL:(NSURL *)url;
+- (instancetype)initWithFrame:(CGRect)frame title:(NSString *)title URL:(NSURL *)url;
 
-/**
- *  销毁播放器
- */
+/** 销毁播放器 */
 - (void)stopPlay;
 
+/** 暂停播放器 */
 - (void)pausePlay;
 
+/** 继续播放 */
 - (void)continuePlay;
 
+/** 是否正在播放 */
 - (BOOL)isPlaying;
 
 @end

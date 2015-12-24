@@ -9,8 +9,8 @@
 #import "AVMoviePlayer.h"
 #import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
-#import "MyIndicatorView.h"
-#import "Slider.h"
+#import "MovieIndicatorView.h"
+#import "MovieSlider.h"
 #import "MovieManager.h"
 
 #define kMakeCMTime(value) (CMTimeMakeWithSeconds(value, self.timescale))
@@ -35,22 +35,27 @@
 @property (nonatomic, strong) UISlider  *volume; //声音进度条
 @property (nonatomic, strong) UISlider  *brightnessSlider; //亮度进度条
 @property (nonatomic, strong) UISlider  *volumeSlider; // 用来接收和更改系统音量条
-@property (nonatomic, strong) Slider    *progress; // 视频底部进度条
+@property (nonatomic, strong) MovieSlider    *progress; // 视频底部进度条
 
-@property (nonatomic, strong) MyIndicatorView   *activity; // 添加菊花动画
+@property (nonatomic, strong) MovieIndicatorView *activity; // 添加菊花动画
 @property (nonatomic, strong) BrightnessHUD     *brigntnessHud; // 模仿系统的亮度提示HUD
 @property (nonatomic, strong) VideoProgressHUD  *videoProgressHud; // 快进/快退 HUD
 
 @property (nonatomic, assign) UIDeviceOrientation movieOrientation; // 旋转方向
 @property (nonatomic,   copy) NSAttributedString *totalTimeStr; //总时间
 @property (nonatomic, strong) NSURL *url; // 视频url
+@property (nonatomic,   copy) NSString *title; //视频标题
 
 @property (nonatomic, assign) CMTimeScale timescale; // timescale
 @property (nonatomic, assign) BOOL isPlayEnd; // 是否播放结束了
 @end
 
-@implementation AVMoviePlayer
-
+@implementation AVMoviePlayer{
+    PanDirection panDirection; // 定义一个实例变量，保存枚举值
+    CGFloat sumTime; // 用来保存快进的总时长
+    BOOL	_isPlayEnd;     // 是否播放结束了
+    
+}
 - (void)dealloc {
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -58,8 +63,8 @@
     NSLog(@"%s", __func__);
 }
 
-- (instancetype)initWithFrame:(CGRect)frame URL:(NSURL *)url
-{
+- (instancetype)initWithFrame:(CGRect)frame title:(NSString *)title URL:(NSURL *)url {
+    
     if (CGRectIsEmpty(frame)) {
         frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
     }
@@ -67,6 +72,7 @@
     if (self) {
         
         self.url = url;
+//        self.title = title;
         
         self.movieOrientation = [UIDevice currentDevice].orientation;
         
@@ -116,7 +122,7 @@
     [_bottomSliderView addSubview:_beginLabel];
     
     // 3.添加进度条
-    self.progress = [[Slider alloc]init];
+    self.progress = [[MovieSlider alloc]init];
     self.progress.delegate = self;
     [self.bottomSliderView addSubview:self.progress];
     
@@ -160,7 +166,7 @@
     [self.topBackView addSubview:self.backBtn];
     
     // 添加菊花动画
-    self.activity = [[MyIndicatorView alloc]init];
+    self.activity = [[MovieIndicatorView alloc]init];
     [self addSubview:self.activity];
     [self.activity startAnimating];
     
@@ -292,10 +298,7 @@
     maxImageView.frame = CGRectMake(self.volume.frame.size.height, 0, volumWidth, volumWidth);
     minImageView.frame = CGRectMake(-volumWidth, 0, volumWidth, volumWidth);
     
-    self.brigntnessHud.frame = CGRectMake(0, 0, 160, 170);
     self.brigntnessHud.center = CGPointMake(ScreenWidth/2, ScreenHeight/2);
-    
-    self.videoProgressHud.frame = CGRectMake(0, 0, 160, 100);
     self.videoProgressHud.center = self.center;
     
 }
@@ -303,6 +306,7 @@
 #pragma mark - PublicMethod
 // 给视频名称赋值
 - (void)setTitle:(NSString *)title {
+    _title = title;
     self.titleLabel.text = title;
 }
 
@@ -341,7 +345,7 @@
 }
 
 - (BOOL)isPlaying {
-    return self.play.selected;
+    return self.moviePlayer.rate > 0;
 }
 
 #pragma mark - ProgressDelegate
@@ -388,8 +392,8 @@
     // 根据上次和本次移动的位置，算出一个速率的point
     CGPoint veloctyPoint = [pan velocityInView:self];
     // 判断是垂直移动还是水平移动
-    PanDirection panDirection; // 定义一个实例变量，保存枚举值
-    CGFloat sumTime = 0; // 用来保存快进的总时长
+//    PanDirection panDirection; // 定义一个实例变量，保存枚举值
+//    CGFloat sumTime = 0; // 用来保存快进的总时长
 
     switch (pan.state) {
         case UIGestureRecognizerStateBegan:{ // 开始移动
@@ -424,7 +428,7 @@
         case UIGestureRecognizerStateChanged:{ // 正在移动
             switch (panDirection) {
                 case PanDirectionHorizontalMoved:{
-                    [self horizontalMoved:veloctyPoint.x sumTime:sumTime]; // 水平移动的方法只要x方向的值
+                    [self horizontalMoved:veloctyPoint.x]; // 水平移动的方法只要x方向的值
                     break;
                 }
                 case PanDirectionVerticalMovedVolume:{
@@ -467,7 +471,7 @@
 }
 
 #pragma mark - pan水平移动的方法
-- (void)horizontalMoved:(CGFloat)value sumTime:(CGFloat)sumTime {
+- (void)horizontalMoved:(CGFloat)value {
     // 快进快退的方法
     // 每次滑动需要叠加时间
     sumTime += value / 200;
