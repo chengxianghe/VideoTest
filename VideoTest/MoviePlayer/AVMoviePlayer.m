@@ -65,7 +65,7 @@
 - (instancetype)initWithFrame:(CGRect)frame title:(NSString *)title URL:(NSURL *)url {
     
     if (CGRectIsEmpty(frame)) {
-        frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
+        frame = CGRectMake(0, 0, kScreenWidth, kScreenWidth/kScaleRadio);
     }
     self = [super initWithFrame:frame];
     if (self) {
@@ -295,7 +295,7 @@
     maxImageView.frame = CGRectMake(self.volume.frame.size.height, 0, volumWidth, volumWidth);
     minImageView.frame = CGRectMake(-volumWidth, 0, volumWidth, volumWidth);
     
-    self.brigntnessHud.center = CGPointMake(ScreenWidth/2, ScreenHeight/2);
+    self.brigntnessHud.center = CGPointMake(kScreenWidth/2, kScreenHeight/2);
     self.videoProgressHud.center = self.center;
     self.activity.center = self.center;
 }
@@ -528,7 +528,7 @@
 - (void)playToLandscapeLeft {
     //        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationLandscapeRight];
     //        self.transform = CGAffineTransformMakeRotation(M_PI/2);
-    //        self.bounds = CGRectMake(0, 0, ScreenHeight, ScreenWidth);
+    //        self.bounds = CGRectMake(0, 0, kScreenHeight, kScreenWidth);
     
     NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
     [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
@@ -539,7 +539,7 @@
     NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
     [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
     //        self.transform = CGAffineTransformMakeRotation(M_PI*2);
-    //        self.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
+    //        self.bounds = CGRectMake(0, 0, kScreenWidth, kScreenHeight);
 
 }
 
@@ -683,7 +683,7 @@
     if (_movieOrientation != [UIDevice currentDevice].orientation) {
         _movieOrientation = [UIDevice currentDevice].orientation;
         
-        self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
+        self.frame = CGRectMake(0, 0, kScreenWidth, kScreenWidth/kScaleRadio);
         [self setNeedsDisplay];
         [self layoutIfNeeded];
 

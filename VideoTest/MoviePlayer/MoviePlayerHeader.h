@@ -41,11 +41,12 @@ typedef NS_ENUM(NSInteger, PlayState){
 
 @end
 
+// 是否需要显示HUD(亮度 和 音量)
 #define kNeedHudTip [@YES boolValue]
 
 // 默认竖屏播放比例
 #define kScaleRadio (16/9.0)
-#define ScreenHeight [[UIScreen mainScreen] bounds].size.height
-#define ScreenWidth [[UIScreen mainScreen] bounds].size.width
+#define kScreenHeight [[UIScreen mainScreen] bounds].size.height
+#define kScreenWidth [[UIScreen mainScreen] bounds].size.width
 
 #endif /* MoviePlayerHeader_h */
