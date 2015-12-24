@@ -17,6 +17,16 @@ typedef NS_ENUM(NSInteger, PanDirection){
     PanDirectionVerticalMovedBrightness
 };
 
+// 枚举值，包含播放状态
+typedef NS_ENUM(NSInteger, PlayState){
+    PlayStateUnknow,
+    PlayStatePause,
+    PlayStatePlaying,
+    PlayStateHome,
+    PlayStateEnd
+};
+
+
 @protocol MoviePlayerDelegate <NSObject>
 
 /**

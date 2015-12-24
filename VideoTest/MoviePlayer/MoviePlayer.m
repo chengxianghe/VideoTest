@@ -91,8 +91,7 @@
     self.play.hidden = YES;
     
     // 添加暂停播放方法
-    [self.play addTarget:self action:@selector(playMovie:) forControlEvents:UIControlEventTouchUpInside];
-    [self.play addTarget:self action:@selector(viewNoDismiss) forControlEvents:UIControlEventTouchUpInside];
+    [self.play addTarget:self action:@selector(onPlayMovieClick) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_play];
     
     // 添加底部进度条和时间显示
@@ -250,10 +249,10 @@
     // 播放结束的通知
     [center addObserver:self selector:@selector(playFinished) name:MPMoviePlayerPlaybackDidFinishNotification object:nil];
     
-    // 进入前台
-    [center addObserver:self selector:@selector(playWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
-    // 进入后台
-    [center addObserver:self selector:@selector(playDidEnterEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+    //监听是否触发home键挂起程序.
+    [center addObserver:self selector:@selector(applicationWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    //监听是否重新进入程序程序.
+    [center addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
 
 
 }
@@ -291,12 +290,9 @@
     maxImageView.frame = CGRectMake(self.volume.frame.size.height, 0, volumWidth, volumWidth);
     minImageView.frame = CGRectMake(-volumWidth, 0, volumWidth, volumWidth);
     
-//    self.brigntnessHud.frame = CGRectMake(0, 0, 150, 160);
     self.brigntnessHud.center = CGPointMake(ScreenWidth/2, ScreenHeight/2);
-    
-//    self.videoProgressHud.frame = CGRectMake(0, 0, 160, 100);
     self.videoProgressHud.center = self.center;
-
+    self.activity.center = self.center;
 }
 
 #pragma mark - PublicMethod
@@ -324,13 +320,17 @@
 }
 
 - (void)pausePlay {
-    self.play.selected = NO;
-    [self playMovie:self.play];
+    [self.timer setFireDate:[NSDate distantFuture]];
+    self.play.selected = YES;
+    // 暂停
+    [self.moviePlayer pause];
 }
 
 - (void)continuePlay {
-    self.play.selected = YES;
-    [self playMovie:self.play];
+    [self.timer setFireDate:[NSDate distantPast]];
+    self.play.selected = NO;
+    // 播放
+    [self.moviePlayer play];
 }
 
 - (BOOL)isPlaying {
@@ -517,7 +517,6 @@
     NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
     [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
     
-    self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
 }
 
 - (void)playToPortrait {
@@ -525,7 +524,6 @@
     [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
     //        self.transform = CGAffineTransformMakeRotation(M_PI*2);
     //        self.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
-    self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
 }
 
 #pragma mark - 通知
@@ -591,21 +589,26 @@
     }
 }
 
-//进入前台 再次进入前台要 转竖屏
-- (void)playWillEnterForeground {
+
+
+// 进入前台
+- (void)applicationDidBecomeActive {
     
-    [self pausePlay];
+    
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
 
-    if (_movieOrientation != UIDeviceOrientationPortrait) {
-        [self playToPortrait];
-        self.rorateBtn.selected = YES;
-    }
+    CGFloat currentTime = self.moviePlayer.currentPlaybackTime;
     
+    if (currentTime > 1) {
+        currentTime -= 1;
+    }
+    self.moviePlayer.currentPlaybackTime = currentTime;
+    [self continuePlay];
+
 }
 
-// 进入后台
-- (void)playDidEnterEnterBackground {
+// 进入后台 即将挂起
+- (void)applicationWillResignActive {
     [self pausePlay];
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
     // 记录
@@ -660,14 +663,12 @@
 }
 
 #pragma mark - 播放暂停方法
-- (void)playMovie:(UIButton *)button {
-    button.selected = !button.selected;
-    if (button.selected) {
-        // 暂停
-        [self.moviePlayer pause];
-    }else{
-        // 播放
-        [self.moviePlayer play];
+- (void)onPlayMovieClick {
+    self.play.selected = !self.play.selected;
+    if (self.play.selected) {
+        [self pausePlay];
+    } else {
+        [self continuePlay];
     }
 }
 

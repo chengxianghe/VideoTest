@@ -47,14 +47,13 @@
 @property (nonatomic,   copy) NSString *title; //视频标题
 
 @property (nonatomic, assign) CMTimeScale timescale; // timescale
-@property (nonatomic, assign) BOOL isPlayEnd; // 是否播放结束了
+@property (nonatomic, assign) PlayState state;     //
+
 @end
 
 @implementation AVMoviePlayer{
     PanDirection panDirection; // 定义一个实例变量，保存枚举值
     CGFloat sumTime; // 用来保存快进的总时长
-    BOOL	_isPlayEnd;     // 是否播放结束了
-    
 }
 - (void)dealloc {
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
@@ -72,7 +71,7 @@
     if (self) {
         
         self.url = url;
-//        self.title = title;
+        self.title = title;
         
         self.movieOrientation = [UIDevice currentDevice].orientation;
         
@@ -84,6 +83,7 @@
         _playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
         [self.layer addSublayer:_playerLayer];
         
+        _state = PlayStateUnknow;
         
         [self configUI];
         
@@ -104,8 +104,7 @@
     self.play.hidden = YES;
     
     // 添加暂停播放方法
-    [self.play addTarget:self action:@selector(playMovie:) forControlEvents:UIControlEventTouchUpInside];
-    [self.play addTarget:self action:@selector(viewNoDismiss) forControlEvents:UIControlEventTouchUpInside];
+    [self.play addTarget:self action:@selector(onPlayMovieClick) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_play];
     
     // 添加底部进度条和时间显示
@@ -257,12 +256,10 @@
     // 播放结束的通知
     [center addObserver:self selector:@selector(playFinished) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
     
-    // 进入前台
-    [center addObserver:self selector:@selector(playWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
-    // 进入后台
-    [center addObserver:self selector:@selector(playDidEnterEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-    
-    
+    //监听是否触发home键挂起程序.
+    [center addObserver:self selector:@selector(applicationWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    //监听是否重新进入程序程序.
+    [center addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
 - (void)layoutSubviews {
@@ -300,7 +297,7 @@
     
     self.brigntnessHud.center = CGPointMake(ScreenWidth/2, ScreenHeight/2);
     self.videoProgressHud.center = self.center;
-    
+    self.activity.center = self.center;
 }
 
 #pragma mark - PublicMethod
@@ -335,13 +332,19 @@
 }
 
 - (void)pausePlay {
-    self.play.selected = NO;
-    [self playMovie:self.play];
+    _state = PlayStatePause;
+    [self.timer setFireDate:[NSDate distantFuture]];
+    self.play.selected = YES;
+    // 暂停
+    [self.moviePlayer pause];
 }
 
 - (void)continuePlay {
-    self.play.selected = YES;
-    [self playMovie:self.play];
+    _state = PlayStatePlaying;
+    [self.timer setFireDate:[NSDate distantPast]];
+    self.play.selected = NO;
+    // 播放
+    [self.moviePlayer play];
 }
 
 - (BOOL)isPlaying {
@@ -514,7 +517,7 @@
     [self pausePlay];
     
     if (_movieOrientation == UIDeviceOrientationPortrait) {
-        [self playToLandscapeRight];
+        [self playToLandscapeLeft];
         self.rorateBtn.selected = NO;
     } else {
         [self playToPortrait];
@@ -522,7 +525,7 @@
     }
 }
 
-- (void)playToLandscapeRight {
+- (void)playToLandscapeLeft {
     //        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationLandscapeRight];
     //        self.transform = CGAffineTransformMakeRotation(M_PI/2);
     //        self.bounds = CGRectMake(0, 0, ScreenHeight, ScreenWidth);
@@ -530,7 +533,6 @@
     NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
     [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
     
-    self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
 }
 
 - (void)playToPortrait {
@@ -538,7 +540,7 @@
     [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
     //        self.transform = CGAffineTransformMakeRotation(M_PI*2);
     //        self.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
-    self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
+
 }
 
 #pragma mark - 通知
@@ -597,13 +599,14 @@
 // 播放结束
 - (void)playFinished {
     //还原到起点
-    _isPlayEnd = YES;
-    
     [self.moviePlayer.currentItem cancelPendingSeeks];
-    [self.moviePlayer seekToTime:kMakeCMTime(0) completionHandler:^(BOOL finished) {
+    [self.moviePlayer seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
         if (finished) {
+            self.progress.value = 0;
+            self.beginLabel.text = @"00:00:00";
             [self tapAction];
             [self pausePlay];
+            _state = PlayStateEnd;
 
             if ([self.delegate respondsToSelector:@selector(moviePlayerCompletionAction:)]) {
                 [self.delegate moviePlayerCompletionAction:self];
@@ -613,32 +616,41 @@
 
 }
 
-//进入前台 再次进入前台要 转竖屏
-- (void)playWillEnterForeground {
+// 进入后台 即将挂起
+- (void)applicationWillResignActive {
     
-    [self pausePlay];
-    [self.activity startAnimating];
-    
+    NSLog(@"进入后台applicationWillResignActive");
+
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
     
-    if (_movieOrientation != UIDeviceOrientationPortrait) {
-        [self playToPortrait];
-        self.rorateBtn.selected = YES;
-    }
+    [self pausePlay];
+    _state = PlayStateHome;
     
-    [self.activity stopAnimating];
-    [self continuePlay];
     
+    // 记录
+    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:CMTimeGetSeconds(self.moviePlayer.currentTime)/CMTimeGetSeconds(self.moviePlayer.currentItem.duration)];
 }
 
-// 进入后台
-- (void)playDidEnterEnterBackground {
-    [self pausePlay];
+// 进入前台
+- (void)applicationDidBecomeActive {
+    
+    NSLog(@"进入前台applicationDidBecomeActive");
     
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
 
-    // 记录
-    [MovieManager addPlayRecordWithIdentifier:[self.url absoluteString] progress:CMTimeGetSeconds(self.moviePlayer.currentTime)/CMTimeGetSeconds(self.moviePlayer.currentItem.duration)];
+    
+        CGFloat currentTime = CMTimeGetSeconds(self.moviePlayer.currentTime);
+    
+        if (currentTime > 1) {
+            currentTime -= 1;
+        }
+    
+        [self.moviePlayer seekToTime:kMakeCMTime(currentTime) completionHandler:^(BOOL finished) {
+            if (finished) {
+                [self continuePlay];
+            }
+        }];
+
 }
 
 - (void)volumeDidChange:(NSNotification *)notification {
@@ -666,12 +678,19 @@
 
 - (void)deviceOrientation:(NSNotification *)noti {
     
+    NSLog(@"");
+    
     if (_movieOrientation != [UIDevice currentDevice].orientation) {
         _movieOrientation = [UIDevice currentDevice].orientation;
+        
+        self.frame = CGRectMake(0, 0, ScreenWidth, ScreenWidth/kScaleRadio);
         [self setNeedsDisplay];
         [self layoutIfNeeded];
-        [self performSelector:@selector(continuePlay) withObject:nil afterDelay:0.5];
-        [self tapAction];
+
+        if (_state == PlayStatePause) {
+            [self performSelector:@selector(continuePlay) withObject:nil afterDelay:0.5];
+        }
+
     }
     
 }
@@ -688,15 +707,12 @@
     return [NSString stringWithFormat:@"%@:%@:%@", hour, min, sec];
 }
 
-#pragma mark - 播放暂停方法
-- (void)playMovie:(UIButton *)button {
-    button.selected = !button.selected;
-    if (button.selected) {
-        // 暂停
-        [self.moviePlayer pause];
-    }else{
-        // 播放
-        [self.moviePlayer play];
+- (void)onPlayMovieClick {
+    self.play.selected = !self.play.selected;
+    if (self.play.selected) {
+        [self pausePlay];
+    } else {
+        [self continuePlay];
     }
 }
 
@@ -782,14 +798,16 @@
 
                 [self playPreparedToPlay];
                 NSLog(@"播放.------");
-            } else {
+            } else if (_state == PlayStatePlaying) {
                 [self.activity stopAnimating];
                 [self continuePlay];
+            } else {
+                [self.moviePlayer pause];
             }
         }
     }else if([keyPath isEqualToString:@"loadedTimeRanges"]){
         
-        if (_isPlayEnd) {
+        if (_state == PlayStateEnd || _state == PlayStateHome) {
             return;
         }
         

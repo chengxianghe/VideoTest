@@ -88,6 +88,10 @@
 }
 
 
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return UIInterfaceOrientationMaskAllButUpsideDown;
+}
+
 /*
 #pragma mark - Navigation
 
