@@ -11,6 +11,7 @@
 #define kWidth [UIScreen mainScreen].bounds.size.width
 #define KHeight [UIScreen mainScreen].bounds.size.height
 #define MYCOLOR [UIColor blackColor]
+#define iOS8Later ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f)
 
 
 @implementation MovieIndicatorView
@@ -53,18 +54,18 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.frame = CGRectMake(0, 0, 150, 160);
+        self.frame = CGRectMake(0, 0, 158, 158);
         self.center = CGPointMake(kWidth/2, KHeight/2);
-        self.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [UIColor colorWithWhite:0.9 alpha:0.8];
         self.layer.cornerRadius = 10;
-        self.alpha = 0.8;
+        self.clipsToBounds = YES;
         
         CGFloat width = self.frame.size.width - 20;
 
         self.textLabel = [[UILabel alloc]init];
         self.textLabel.frame = CGRectMake(10, 10, width, 20);
         self.textLabel.text = @"亮度";
-        self.textLabel.font = [UIFont systemFontOfSize:16];
+        self.textLabel.font = [UIFont boldSystemFontOfSize:16];
         self.textLabel.textAlignment = NSTextAlignmentCenter;
         self.textLabel.textColor = [UIColor blackColor];
         [self addSubview:self.textLabel];
@@ -81,6 +82,14 @@
         [self addSubview:self.progressView];
         
         self.style = BrightnessHUDStyleBlack;
+        
+        if (iOS8Later) {
+            UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
+            UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+            blurView.frame = self.bounds;
+            [self insertSubview:blurView atIndex:0];
+            self.backgroundColor = [UIColor clearColor];
+        }
 
     }
     return self;
@@ -120,9 +129,9 @@
     if (self) {
         
         self.frame = CGRectMake(0, 0, 160, 100);
-        self.backgroundColor = [UIColor blackColor];
+        self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.8];
         self.layer.cornerRadius = 10;
-        self.alpha = 0.8;
+        self.clipsToBounds = YES;
         
         CGFloat width = self.frame.size.width - 20;
         
@@ -145,6 +154,14 @@
         self.progressView.center = CGPointMake(self.center.x, self.frame.size.height - 10);
 
         [self addSubview:self.progressView];
+        
+        if (iOS8Later) {
+            UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+            UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+            blurView.frame = self.bounds;
+            [self insertSubview:blurView atIndex:0];
+            self.backgroundColor = [UIColor clearColor];
+        }
     }
     return self;
 }
