@@ -12,7 +12,7 @@
 #define KHeight [UIScreen mainScreen].bounds.size.height
 #define MYCOLOR [UIColor blackColor]
 #define iOS8Later ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f)
-
+#define kLoadBundleImage(image) [NSString stringWithFormat:@"SystemHUD.bundle/%@", image]
 
 @implementation MovieIndicatorView
 
@@ -40,7 +40,7 @@
 
 @end
 
-@interface BrightnessHUD()
+@interface SystemHUD()
 
 @property (nonatomic, strong) UILabel *textLabel;     //
 @property (nonatomic, strong) UIImageView *imageView;     //
@@ -48,7 +48,7 @@
 
 @end
 
-@implementation BrightnessHUD
+@implementation SystemHUD
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
@@ -81,8 +81,9 @@
         self.progressView.center = CGPointMake(self.frame.size.width/2, self.frame.size.height - 20);
         [self addSubview:self.progressView];
         
-        self.style = BrightnessHUDStyleBlack;
-        
+        self.style = SystemHUDStyleBrightness;
+        self.mode = SystemHUDShowModeBlack;
+
         if (iOS8Later) {
             UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
             UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
@@ -95,21 +96,71 @@
     return self;
 }
 
-- (void)setStyle:(BrightnessHUDStyle)style {
+- (void)setStyle:(SystemHUDStyle)style {
     _style = style;
-    if (style == BrightnessHUDStyleBlack) {
-        self.imageView.image = [UIImage imageNamed:@"playgesture_BrightnessSun6"];
-        [self.progressView setTintImage:@"playgesture_BrightnessProgress" BackImage:@"playgesture_BrightnessProgressBg"];
+    
+    if (style == SystemHUDStyleBrightness) {
+        self.textLabel.text = @"亮度";
+    } else if (style == SystemHUDStyleVolume) {
+        self.textLabel.text = @"音量";
+    }
+    
+}
 
+- (void)setMode:(SystemHUDShowMode)mode {
+    _mode = mode;
+    
+    NSString *progressTine = kLoadBundleImage(@"progress");
+    NSString *progressBack = kLoadBundleImage(@"progress_bg");
+
+    if (mode == SystemHUDShowModeLight) {
+        self.textLabel.textColor = [UIColor whiteColor];
+        [self.progressView setTintImage:progressTine BackImage:progressBack];
     } else {
-        self.imageView.image = [UIImage imageNamed:@"playgesture_BrightnessSun"];
-        [self.progressView setTintImage:@"playgesture_BrightnessProgressBg" BackImage:@"playgesture_BrightnessProgress"];
+        self.textLabel.textColor = [UIColor blackColor];
+        [self.progressView setTintImage:progressTine BackImage:progressBack];
     }
 }
 
-- (void)setProgress:(CGFloat)progress {    
+- (void)setProgress:(CGFloat)progress {
+    
+    if (_style == SystemHUDStyleVolume) {
+        NSMutableString *imageName = [NSMutableString stringWithString:@"volume"];
+        [imageName appendString:progress <= 0 ? @"_close" : @""];
+        [imageName appendString:_mode == SystemHUDShowModeLight ? @"_light" : @"_dark"];
+
+        self.imageView.image = [UIImage imageNamed:kLoadBundleImage(imageName)];
+        
+    } else {
+        if (_mode == SystemHUDShowModeLight) {
+            self.imageView.image = [UIImage imageNamed:kLoadBundleImage(@"brightness_light")];
+        } else {
+            self.imageView.image = [UIImage imageNamed:kLoadBundleImage(@"brightness_dark")];
+        }
+    }
+    
     [self.progressView setProgress:progress];
 }
+
+/**
+ *      if (style == SystemHUDStyleBrightness) {
+ imageName = @"playgesture_BrightnessSun6";
+ progressTine = @"playgesture_BrightnessProgress";
+ progressBack = @"playgesture_BrightnessProgressBg";
+ } else if (style == SystemHUDStyleBrightnessLight) {
+ imageName = @"playgesture_BrightnessSun";
+ progressTine = @"playgesture_BrightnessProgress";
+ progressBack = @"playgesture_BrightnessProgressBg";
+ } else if (style == SystemHUDStyleVolumeBlack) {
+ imageName = @"playgesture_volume_light";
+ progressTine = @"playgesture_BrightnessProgress";
+ progressBack = @"playgesture_BrightnessProgressBg";
+ } else if (style == SystemHUDStyleVolumeLight) {
+ imageName = @"playgesture_volume_light";
+ progressTine = @"playgesture_BrightnessProgress";
+ progressBack = @"playgesture_BrightnessProgressBg";
+ }
+ */
 
 @end
 
@@ -135,7 +186,7 @@
         
         CGFloat width = self.frame.size.width - 20;
         
-        self.imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"kuaijin"]];
+        self.imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:kLoadBundleImage(@"forward")]];
         self.imageView.frame = CGRectMake(0, 0, 30, 30);
         self.imageView.center = CGPointMake(self.center.x, 30);
         
@@ -168,7 +219,7 @@
 
 - (void)showWithVideoProgress:(CGFloat)progress text:(NSAttributedString *)text isForward:(BOOL)isForward {
     
-    self.imageView.image = [UIImage imageNamed:isForward ? @"kuaijin" : @"kuaitui"];
+    self.imageView.image = [UIImage imageNamed:isForward ? kLoadBundleImage(@"forward") : kLoadBundleImage(@"rewind")];
     [self.progressView setProgress:progress];
     self.textLabel.attributedText = text;
 }

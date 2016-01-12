@@ -20,17 +20,23 @@
 
 @end
 
-typedef NS_ENUM(NSInteger, BrightnessHUDStyle) {
-    BrightnessHUDStyleBlack,
-    BrightnessHUDStyleLight
+typedef NS_ENUM(NSInteger, SystemHUDStyle) {
+    SystemHUDStyleBrightness,
+    SystemHUDStyleVolume
+};
+
+typedef NS_ENUM(NSInteger, SystemHUDShowMode) {
+    SystemHUDShowModeBlack,
+    SystemHUDShowModeLight
 };
 
 /**
  *  系统亮度 HUD
  */
-@interface BrightnessHUD : UIView
+@interface SystemHUD : UIView
 
-@property (nonatomic, assign) BrightnessHUDStyle style; // 展示样式
+@property (nonatomic, assign) SystemHUDStyle style; // 展示样式
+@property (nonatomic, assign) SystemHUDShowMode mode; // 展示样式
 
 - (void)setProgress:(CGFloat)progress;
 

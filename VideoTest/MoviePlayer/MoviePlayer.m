@@ -33,7 +33,7 @@
 @property (nonatomic, strong) MovieSlider   *progress; // 视频底部进度条
 
 @property (nonatomic, strong) MovieIndicatorView *activity; // 添加菊花动画
-@property (nonatomic, strong) BrightnessHUD     *brigntnessHud; // 模仿系统的亮度提示HUD
+@property (nonatomic, strong) SystemHUD          *brigntnessHud; // 模仿系统的亮度提示HUD
 @property (nonatomic, strong) VideoProgressHUD  *videoProgressHud; // 快进/快退 HUD
 
 @property (nonatomic, assign) UIDeviceOrientation movieOrientation; // 旋转方向
@@ -161,7 +161,7 @@
     
     //添加亮度hud
     if (kNeedHudTip) {
-        self.brigntnessHud = [[BrightnessHUD alloc] init];
+        self.brigntnessHud = [[SystemHUD alloc] init];
         self.brigntnessHud.hidden = YES;
         [[UIApplication sharedApplication].keyWindow addSubview:self.brigntnessHud];
     }

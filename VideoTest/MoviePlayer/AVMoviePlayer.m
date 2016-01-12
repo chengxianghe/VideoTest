@@ -38,7 +38,7 @@
 @property (nonatomic, strong) MovieSlider    *progress; // 视频底部进度条
 
 @property (nonatomic, strong) MovieIndicatorView *activity; // 添加菊花动画
-@property (nonatomic, strong) BrightnessHUD     *brigntnessHud; // 模仿系统的亮度提示HUD
+@property (nonatomic, strong) SystemHUD          *brigntnessHud; // 模仿系统的亮度提示HUD
 @property (nonatomic, strong) VideoProgressHUD  *videoProgressHud; // 快进/快退 HUD
 
 @property (nonatomic, assign) UIDeviceOrientation movieOrientation; // 旋转方向
@@ -146,7 +146,7 @@
     [self.rorateBtn setImage:[UIImage imageNamed:@"btn_miniscreen"] forState:UIControlStateNormal];
     [self.rorateBtn setImage:[UIImage imageNamed:@"btn_fullscreen"] forState:UIControlStateSelected];
     [self.rorateBtn setSelected:YES];
-    self.rorateBtn.titleLabel.font=[UIFont systemFontOfSize:16];
+    self.rorateBtn.titleLabel.font = [UIFont systemFontOfSize:16];
     [self.rorateBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.rorateBtn.showsTouchWhenHighlighted = YES;
     self.rorateBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
@@ -157,7 +157,7 @@
     [self.backBtn setImage:[UIImage imageNamed:@"top_back_normal"] forState:UIControlStateNormal];
     [self.backBtn setImage:[UIImage imageNamed:@"top_back_active"] forState:UIControlStateSelected];
     
-    self.backBtn.titleLabel.font=[UIFont systemFontOfSize:16];
+    self.backBtn.titleLabel.font = [UIFont systemFontOfSize:16];
     [self.backBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.backBtn.showsTouchWhenHighlighted = YES;
     self.backBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
@@ -170,7 +170,7 @@
     [self.activity startAnimating];
     
     //添加亮度hud
-    self.brigntnessHud = [[BrightnessHUD alloc] init];
+    self.brigntnessHud = [[SystemHUD alloc] init];
     self.brigntnessHud.hidden = YES;
     [[UIApplication sharedApplication].keyWindow addSubview:self.brigntnessHud];
     
@@ -210,7 +210,7 @@
     // 添加并接收系统的音量条
     // 把系统音量条放在可视范围外，用我们自己的音量条来控制
     MPVolumeView *volum = [[MPVolumeView alloc]initWithFrame:CGRectMake(-1000, -1000, 30, 30)];
-    volum.hidden = kNeedHudTip;
+    volum.hidden = NO;
     // 遍历volumView上控件，取出音量slider
     for (UIView *view in volum.subviews) {
         if ([view isKindOfClass:[UISlider class]]) {
@@ -658,6 +658,10 @@
     NSString *volumeS = notification.userInfo[@"AVSystemController_AudioVolumeNotificationParameter"];
     self.volume.value = volumeS.floatValue; // 越小幅度越小
     
+    self.brigntnessHud.hidden = NO;
+    self.brigntnessHud.style = SystemHUDStyleVolume;
+    [self.brigntnessHud setProgress:self.volume.value];
+    
     [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(hiddenView:) object:_volume];
     [self performSelector:@selector(hiddenView:) withObject:_volume afterDelay:2];
 }
@@ -669,6 +673,8 @@
     [self performSelector:@selector(hiddenView:) withObject:_brightnessSlider afterDelay:2];
     
     self.brigntnessHud.hidden = NO;
+    self.brigntnessHud.style = SystemHUDStyleBrightness;
+
     [self.brigntnessHud setProgress:_brightnessSlider.value];
     [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(hiddenView:) object:self.brigntnessHud];
     [self performSelector:@selector(hiddenView:) withObject:self.brigntnessHud afterDelay:2];
